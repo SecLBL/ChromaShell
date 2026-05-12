@@ -9,6 +9,6 @@ ShellRoot {
         function onReloadFailed(errorString) { Quickshell.inhibitReloadPopup() }
     }
 
-    // TODO: TopBar {}
-    // TODO: Floating {}
+    TopBar    {}   // TODO
+    Floating  {}   // TODO: alle Popups
 }
