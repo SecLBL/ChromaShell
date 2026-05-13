@@ -6,7 +6,7 @@ import QtQuick
 import Quickshell
 import Quickshell.Io
 
-Item {
+Singleton {
     id: root
 
     property color base:     "#1e1e2e"

@@ -1,6 +1,7 @@
 //@ pragma UseQApplication
 import QtQuick
 import Quickshell
+import "bar"
 
 ShellRoot {
     Connections {
@@ -9,6 +10,13 @@ ShellRoot {
         function onReloadFailed(errorString) { Quickshell.inhibitReloadPopup() }
     }
 
-    TopBar    {}   // TODO
-    Floating  {}   // TODO: alle Popups
+    // ── Shell frame ─────────────────────────────────
+    LeftBar {}
+
+    ShellEdge { side: "top" }
+    ShellEdge { side: "right" }
+    ShellEdge { side: "bottom" }
+
+    // ── Popups (TODO) ──────────────────────────────
+    // Floating {}
 }
