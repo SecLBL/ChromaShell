@@ -36,7 +36,7 @@ fi
 
 # Wallpaper setzen
 TRANSITION=$(shuf -n1 -e simple fade left right top bottom wipe grow center outer wave)
-swww img "$WALLPAPER" \
+awww img "$WALLPAPER" \
     --transition-type "$TRANSITION" \
     --transition-pos 0.5,0.5 \
     --transition-fps 144 \
@@ -51,7 +51,7 @@ case "$MODE" in
         matugen image "$WALLPAPER"
         ;;
     pywal)
-        # -n = skip wallpaper (swww handles it), templates in ~/.config/wal/templates/ are applied automatically
+        # -n = skip wallpaper (awww handles it), templates in ~/.config/wal/templates/ are applied automatically
         wal -i "$WALLPAPER" -n -q
         bash "$PYWAL_TO_QS"
         ;;
