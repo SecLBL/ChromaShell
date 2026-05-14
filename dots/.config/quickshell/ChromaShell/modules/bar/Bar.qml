@@ -10,7 +10,7 @@ ColumnLayout {
     id: root
 
     required property ShellScreen screen
-
+    
     spacing: 8
 
     Item { Layout.preferredHeight: 12; Layout.fillWidth: true }

@@ -7,7 +7,7 @@ Item {
     required property ShellScreen screen
 
     readonly property int barInnerWidth: 44
-    readonly property int sidePadding: 8
+    readonly property int sidePadding: 7
     readonly property int contentWidth: barInnerWidth + sidePadding * 2
 
     clip: true

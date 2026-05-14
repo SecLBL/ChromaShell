@@ -43,6 +43,8 @@ swww img "$WALLPAPER" \
     --transition-duration 1 &
 
 mkdir -p ~/.cache/matugen
+mkdir -p ~/.cache/quickshell/wallpaper_picker
+echo "$WALLPAPER" > ~/.cache/quickshell/wallpaper_picker/current_wallpaper
 
 case "$MODE" in
     matugen)
