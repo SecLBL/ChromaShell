@@ -3,6 +3,7 @@ import QtQuick.Layouts
 import QtQuick.Window
 import QtCore
 import Qt.labs.folderlistmodel
+import QtMultimedia
 import Quickshell
 import Quickshell.Io
 import "../../utils/"
