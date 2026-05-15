@@ -3,6 +3,12 @@ import QtQuick
 import Quickshell
 
 Singleton {
+    readonly property QtObject border: QtObject {
+        readonly property real thickness: 8
+        readonly property real rounding: 20
+        readonly property real smoothing: 32
+    }
+
     readonly property QtObject bar: QtObject {
         readonly property QtObject workspaces: QtObject {
             readonly property int shown: 5
