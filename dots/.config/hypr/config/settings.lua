@@ -10,8 +10,9 @@ hl.monitor({ output="", mode="preferred", position="auto", scale=1 })
 hl.gesture({ fingers=3, direction="swipe",      action="move" })
 hl.gesture({ fingers=3, direction="pinch",      action="float" })
 hl.gesture({ fingers=4, direction="horizontal", action="workspace" })
-hl.gesture({ fingers=4, direction="up",   action=hl.dsp.exec_cmd("hyprctl dispatch global quickshell:overviewWorkspacesToggle") })
-hl.gesture({ fingers=4, direction="down", action=hl.dsp.exec_cmd("hyprctl dispatch global quickshell:overviewWorkspacesClose") })
+-- hl.gesture action must be a builtin string type; arbitrary dispatcher calls not yet supported via hl.gesture in 0.55
+-- hl.gesture({ fingers=4, direction="up",   action="global quickshell:overviewWorkspacesToggle" })
+-- hl.gesture({ fingers=4, direction="down", action="global quickshell:overviewWorkspacesClose" })
 
 hl.config({
     gestures = {
@@ -71,7 +72,6 @@ hl.config({
 
         shadow = {
             enabled      = true,
-            ignore_window = true,
             range        = 30,
             offset       = "0 2",
             render_power = 4,
@@ -100,10 +100,13 @@ hl.config({
         },
     },
 
+    debug = {
+        vfr = true,
+    },
+
     misc = {
         disable_hyprland_logo        = true,
         disable_splash_rendering     = true,
-        vfr                          = true,
         vrr                          = 0,
         mouse_move_enables_dpms      = true,
         key_press_enables_dpms       = true,

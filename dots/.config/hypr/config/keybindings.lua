@@ -10,7 +10,7 @@ hl.bind(M .. " + Space",  hl.dsp.workspace.toggle_special("terminal"))
 
 -- Windows
 hl.bind(M .. " + Q",           hl.dsp.window.close())
-hl.bind(M .. " SHIFT + F",     hl.dsp.window.float({ action="toggle" }))
+hl.bind(M .. " + SHIFT + F",   hl.dsp.window.float({ action="toggle" }))
 hl.bind(M .. " + F",           hl.dsp.window.fullscreen(0))
 hl.bind(M .. " + left",        hl.dsp.focus({ direction="left" }))
 hl.bind(M .. " + right",       hl.dsp.focus({ direction="right" }))
@@ -23,7 +23,7 @@ hl.bind(M .. " + mouse:273",   hl.dsp.window.resize(), { mouse=true })
 -- Workspaces
 for i = 1, 8 do
     hl.bind(M .. " + " .. i,         hl.dsp.focus({ workspace=i }))
-    hl.bind(M .. " SHIFT + " .. i,   hl.dsp.window.move({ workspace=i }))
+    hl.bind(M .. " + SHIFT + " .. i, hl.dsp.window.move({ workspace=i }))
 end
 
 -- Audio
