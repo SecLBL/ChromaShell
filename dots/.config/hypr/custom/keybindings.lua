@@ -1,0 +1,3 @@
+-- Custom keybindings — add your own on top of ChromaShell defaults.
+--
+-- hl.bind("SUPER + F", hl.dsp.exec_cmd("firefox"))

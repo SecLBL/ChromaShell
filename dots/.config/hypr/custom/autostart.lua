@@ -1,0 +1,3 @@
+-- Custom autostart — add your own exec entries.
+--
+-- hl.exec_cmd("yourapp")

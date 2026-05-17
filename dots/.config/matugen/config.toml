@@ -6,8 +6,8 @@ input_path  = "~/.config/matugen/templates/qs_colors.json.template"
 output_path = "/tmp/qs_colors.json"
 
 [templates.hyprland]
-input_path  = "~/.config/matugen/templates/hyprland.conf.template"
-output_path = "~/.config/hypr/colors.conf"
+input_path  = "~/.config/matugen/templates/hyprland.lua.template"
+output_path = "~/.config/hypr/colors.lua"
 
 [templates.gtk]
 input_path  = "~/.config/matugen/templates/gtk.css.template"

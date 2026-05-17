@@ -1,0 +1,3 @@
+-- Custom window rules — add your own on top of ChromaShell defaults.
+--
+-- hl.window_rule({ match={ class="^(pavucontrol)$" }, float=true })

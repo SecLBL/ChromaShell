@@ -1,0 +1,3 @@
+-- Custom environment variables — extends config/env.lua.
+--
+-- hl.env("MY_VAR", "value")
