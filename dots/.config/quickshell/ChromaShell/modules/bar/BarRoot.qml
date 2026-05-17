@@ -3,6 +3,7 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import Quickshell
 import Quickshell.Wayland
+import qs.config
 
 Variants {
     model: Quickshell.screens
@@ -15,13 +16,15 @@ Variants {
         anchors.bottom: true
         anchors.left: true
 
-        exclusiveZone: barWrapper.implicitWidth
+        width: Config.bar.contentWidth
+        exclusiveZone: Config.bar.contentWidth
         color: "transparent"
 
         BarWrapper {
             id: barWrapper
             anchors.top: parent.top
             anchors.bottom: parent.bottom
+            width: Config.bar.contentWidth
             screen: modelData
         }
     }

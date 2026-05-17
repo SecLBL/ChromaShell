@@ -6,6 +6,6 @@ import Quickshell
 ShellRoot {
     settings.watchFiles: true
     WallpaperWindow { id: wallpaperWin }
-    BarRoot {}
     Drawers {}
+    BarRoot {}
 }

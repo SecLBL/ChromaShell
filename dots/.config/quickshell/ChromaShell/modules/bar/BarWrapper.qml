@@ -1,14 +1,13 @@
 import QtQuick
 import Quickshell
+import qs.config
 
 Item {
     id: root
 
     required property ShellScreen screen
 
-    readonly property int barInnerWidth: 44
-    readonly property int sidePadding: 7
-    readonly property int contentWidth: barInnerWidth + sidePadding * 2
+    readonly property int contentWidth: Config.bar.contentWidth
 
     clip: true
     implicitWidth: contentWidth

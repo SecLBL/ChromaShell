@@ -13,7 +13,8 @@ import qs.components
 PanelWindow {
     id: root
 
-    required property ShellScreen screen
+    required property ShellScreen targetScreen
+    screen: targetScreen
 
     readonly property HyprlandMonitor monitor: Hypr.monitorFor(root.screen)
     readonly property bool hasFullscreen:
@@ -63,7 +64,7 @@ PanelWindow {
             anchors.margins: -50
             group: blobGroup
             radius: root.borderRounding
-            borderLeft:   root.borderThickness - anchors.margins - root.sdfOffset
+            borderLeft:   Config.bar.contentWidth - anchors.margins - root.sdfOffset
             borderRight:  root.borderThickness - anchors.margins - root.sdfOffset
             borderTop:    root.borderThickness - anchors.margins - root.sdfOffset
             borderBottom: root.borderThickness - anchors.margins - root.sdfOffset

@@ -10,6 +10,10 @@ Singleton {
     }
 
     readonly property QtObject bar: QtObject {
+        readonly property int innerWidth: 44
+        readonly property int sidePadding: 9
+        readonly property int contentWidth: innerWidth + sidePadding * 2
+
         readonly property QtObject workspaces: QtObject {
             readonly property int shown: 5
             readonly property bool perMonitorWorkspaces: true

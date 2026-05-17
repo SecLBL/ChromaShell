@@ -1,3 +1,5 @@
+pragma ComponentBehavior: Bound
+
 import QtQuick
 import Quickshell
 
@@ -8,8 +10,12 @@ Variants {
         id: scope
         required property ShellScreen modelData
 
-        ContentWindow {
+        Exclusions {
             screen: scope.modelData
+        }
+
+        ContentWindow {
+            targetScreen: scope.modelData
         }
     }
 }
