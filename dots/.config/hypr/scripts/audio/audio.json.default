@@ -1,0 +1,53 @@
+{
+  "mic-gate": {
+    "uri": "http://lsp-plug.in/plugins/lv2/gate_stereo",
+    "params": {
+      "gt":   0.01,
+      "gz":   0.59566,
+      "gh":   0,
+      "ht":   0.25119,
+      "hz":   0.50119,
+      "gr":   0.000251,
+      "mk":   1.41254,
+      "at":   2.92,
+      "rt":   100,
+      "hold": 171
+    }
+  },
+  "mic-nr": {
+    "uri": "https://github.com/werman/noise-suppression-for-voice#stereo",
+    "params": {}
+  },
+  "mic-comp": {
+    "uri": "http://lsp-plug.in/plugins/lv2/compressor_stereo",
+    "params": {
+      "cm":   0,
+      "al":   0.06267,
+      "at":   30,
+      "rrl":  0.79433,
+      "rt":   132,
+      "hold": 14.0,
+      "cr":   3.54,
+      "kn":   0.55208,
+      "mk":   1.41254
+    }
+  },
+  "chat-nr": {
+    "uri": "https://github.com/werman/noise-suppression-for-voice#stereo",
+    "params": {}
+  },
+  "chat-comp": {
+    "uri": "http://lsp-plug.in/plugins/lv2/compressor_stereo",
+    "params": {
+      "cm":   0,
+      "al":   0.06267,
+      "at":   30,
+      "rrl":  0.79433,
+      "rt":   132,
+      "hold": 14.0,
+      "cr":   3.54,
+      "kn":   0.55208,
+      "mk":   1.41254
+    }
+  }
+}

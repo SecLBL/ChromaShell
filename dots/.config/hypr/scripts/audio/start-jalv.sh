@@ -1,61 +1,77 @@
 #!/usr/bin/env bash
 # ChromaShell — startet alle jalv LV2-Plugin-Instanzen
-# Jede Instanz bekommt ein FIFO unter /tmp/jalv-<name> für live Parametersteuerung
-# Wird von autostart.conf via exec-once aufgerufen
+#
+# Liest Plugin-Definitionen und aktuelle Parameter aus:
+#   $XDG_CONFIG_HOME/chromashell/audio.json   (Single Source of Truth)
+#
+# Wenn die Config fehlt, wird sie aus audio.json.default angelegt.
+# Jede Instanz bekommt ein FIFO unter /tmp/jalv-<name> für live Steuerung.
 
-JALV=$(which jalv)
+set -euo pipefail
+
+JALV="$(command -v jalv)"
+JQ="$(command -v jq)"
+
+if [[ -z "$JALV" ]]; then
+    echo "Error: jalv nicht im PATH" >&2
+    exit 1
+fi
+if [[ -z "$JQ" ]]; then
+    echo "Error: jq nicht im PATH (brauchen wir zum JSON-Parsen)" >&2
+    exit 1
+fi
+
+CONFIG_DIR="${XDG_CONFIG_HOME:-$HOME/.config}/chromashell"
+CONFIG_FILE="$CONFIG_DIR/audio.json"
+DEFAULT_CONFIG="${CHROMASHELL_DEFAULT_CONFIG:-$(dirname "$(readlink -f "$0")")/audio.json.default}"
+
+# Erstinit: Config aus Defaults anlegen, falls noch keine da
+if [[ ! -f "$CONFIG_FILE" ]]; then
+    mkdir -p "$CONFIG_DIR"
+    if [[ -f "$DEFAULT_CONFIG" ]]; then
+        cp "$DEFAULT_CONFIG" "$CONFIG_FILE"
+        echo "Initial audio.json aus Defaults angelegt: $CONFIG_FILE"
+    else
+        echo "Error: weder $CONFIG_FILE noch $DEFAULT_CONFIG vorhanden" >&2
+        exit 1
+    fi
+fi
+
+# Config validieren
+if ! "$JQ" empty "$CONFIG_FILE" 2>/dev/null; then
+    echo "Error: $CONFIG_FILE ist kein valides JSON" >&2
+    exit 1
+fi
 
 start_plugin() {
     local name="$1"
     local uri="$2"
-    shift 2
-    local init_params=("$@")
-
     local fifo="/tmp/jalv-${name}"
-    mkfifo "$fifo" 2>/dev/null || true
 
-    # Hält write-end offen → jalv bekommt nie EOF
-    # Initial-Parameter werden nach 3s gesetzt (jalv braucht Zeit zum Starten)
+    # Stale FIFO aus alter Session entfernen
+    [[ -p "$fifo" ]] && rm -f "$fifo"
+    mkfifo "$fifo"
+
+    local params
+    params="$("$JQ" -r --arg n "$name" '.[$n].params | to_entries[] | "\(.key) \(.value)"' "$CONFIG_FILE")"
+
     (
         exec 3>"$fifo"
-        if [[ ${#init_params[@]} -gt 0 ]]; then
+        if [[ -n "$params" ]]; then
             sleep 3
-            for param in "${init_params[@]}"; do
-                echo "$param" > "$fifo"
-            done
+            while IFS= read -r line; do
+                [[ -z "$line" ]] && continue
+                echo "set $line" >&3
+            done <<< "$params"
         fi
         while true; do sleep 3600; done
     ) &
 
     JACK_CLIENT_NAME="$name" "$JALV" "$uri" < "$fifo" &
-    echo "Started jalv $name (pid $!)"
+    echo "Started jalv $name (pid $!) — URI: $uri"
 }
 
-# ── Mic Chain: gate → noise-repellent → compressor ─────────────────────────
-start_plugin "mic-gate" "http://lsp-plug.in/plugins/lv2/gate_stereo" \
-    "set gt 0.00988" \
-    "set at 2.924" \
-    "set rt 100" \
-    "set hold 170.5" \
-    "set gr 0.0631"
-
-start_plugin "mic-nr" "https://github.com/lucianodato/noise-repellent#adaptive-stereo"
-
-start_plugin "mic-comp" "http://lsp-plug.in/plugins/lv2/compressor_stereo" \
-    "set al 0.0973" \
-    "set at 10.08" \
-    "set rt 131.57" \
-    "set hold 14" \
-    "set cr 3.536" \
-    "set kn 0.552"
-
-# ── Chat Chain: noise-repellent → compressor ────────────────────────────────
-start_plugin "chat-nr" "https://github.com/lucianodato/noise-repellent#adaptive-stereo"
-
-start_plugin "chat-comp" "http://lsp-plug.in/plugins/lv2/compressor_stereo" \
-    "set al 0.0973" \
-    "set at 10.08" \
-    "set rt 131.57" \
-    "set hold 14" \
-    "set cr 3.536" \
-    "set kn 0.552"
+# Alle Plugins aus der Config starten
+while IFS=$'\t' read -r name uri; do
+    start_plugin "$name" "$uri"
+done < <("$JQ" -r 'keys_unsorted[] as $k | "\($k)\t\(.[$k].uri)"' "$CONFIG_FILE")

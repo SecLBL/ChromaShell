@@ -101,9 +101,9 @@ StyledClippingRect {
                 const ws = (item as Workspace)?.ws;
                 if (ws === undefined || ws === null) return;
                 if (Hypr.activeWsId !== ws)
-                    Hypr.dispatch(`workspace ${ws}`);
+                    Hypr.dispatch("workspace", `${ws}`);
                 else
-                    Hypr.dispatch("togglespecialworkspace special");
+                    Hypr.dispatch("togglespecialworkspace", "special");
             }
         }
 

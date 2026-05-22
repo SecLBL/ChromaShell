@@ -23,7 +23,7 @@ hl.on("hyprland.start", function()
     hl.exec_cmd("sleep 2 && qpwgraph -a -m")
 
     -- Shell
-    hl.exec_cmd("quickshell -c ChromaShell")
+    hl.exec_cmd("qs -c ChromaShell")
 
     -- Cursor
     hl.exec_cmd("hyprctl setcursor Bibata-Modern-Classic 18")
