@@ -1,9 +1,0 @@
-window {
-  background-color: {{colors.surface_container.default.hex}};
-  border-radius: 12px;
-  border: 1px solid {{colors.outline_variant.default.hex}};
-}
-
-image, label {
-  color: {{colors.on_surface.default.hex}};
-}
