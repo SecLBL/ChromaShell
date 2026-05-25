@@ -9,8 +9,11 @@ if not ok then
 end
 -- Expose colors globally so settings.lua can access via its own pcall(require,"colors")
 
+-- variables
+require("config.variables")         -- upstream
+pcall(require, "custom.variables")  -- custom (writable, created once by flake, never overwritten)
+
 -- ChromaShell upstream
-require("config.variables")
 require("config.env")
 require("config.settings")
 require("config.rules")
@@ -26,3 +29,4 @@ pcall(require, "custom.env")
 pcall(require, "custom.rules")
 pcall(require, "custom.keybindings")
 pcall(require, "custom.autostart")
+pcall(require, "custom.settings")   -- hl.config() calls merge, so end is fine

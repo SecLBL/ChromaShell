@@ -1,5 +1,5 @@
 -- ── Opacity ───────────────────────────────────────────────────────────────────
-hl.window_rule({ match={ fullscreen=false }, opacity="0.95 override" })
+hl.window_rule({ match={ class=".*" }, opacity="0.8 override 0.8 override" })
 
 -- Full opacity for native-transparent or always-opaque apps
 hl.window_rule({ match={ class="foot|equibop|org%.quickshell|imv|swappy" }, opacity="1.0 override", no_blur=true })
@@ -68,10 +68,6 @@ hl.window_rule({ match={ class="feishin|Spotify|Supersonic|Cider|com%.github%.th
 hl.window_rule({ match={ title="Spotify( Free)?" },                                                            workspace="special:music" })
 hl.window_rule({ match={ class="discord|equibop|vesktop|whatsapp" },                                          workspace="special:communication" })
 hl.window_rule({ match={ class="Todoist" },                                                                    workspace="special:todo" })
-
--- ── Workspace rules ───────────────────────────────────────────────────────────
-hl.workspace_rule({ workspace="w[tv1]s[false]", gaps_out=20 })
-hl.workspace_rule({ workspace="f[1]s[false]",   gaps_out=20 })
 
 -- ── Layer rules ───────────────────────────────────────────────────────────────
 hl.layer_rule({ match={ namespace="hyprpicker" },                      animation="fade" })

@@ -1,0 +1,12 @@
+-- Custom Hyprland settings — hl.config() calls merge with existing values.
+-- Only the fields you specify are overridden; everything else stays as-is.
+--
+-- hl.config({
+--     decoration = {
+--         rounding = 10,
+--         blur     = { size = 4 },
+--     },
+--     general = {
+--         gaps_out = 10,
+--     },
+-- })

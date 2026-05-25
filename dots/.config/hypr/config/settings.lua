@@ -63,7 +63,7 @@ hl.config({
 
 -- ── Decoration ────────────────────────────────────────────────────────────────
     decoration = {
-        rounding         = 15,
+        rounding         = 12,
         active_opacity   = 1.0,
         inactive_opacity = 0.95,
         dim_inactive     = true,
@@ -72,18 +72,17 @@ hl.config({
 
         blur = {
             enabled                   = true,
-            xray                      = false,
+            xray                      = true,
             special                   = false,
-            ignore_opacity            = true,
             new_optimizations         = true,
-            size                      = 8,
+            size                      = 6,
             passes                    = 2,
             brightness                = 1.5,
             noise                     = 0,
             contrast                  = 0.89,
             vibrancy                  = 0.3,
             vibrancy_darkness         = 0.3,
-            popups                    = true,
+            popups                    = false,
             popups_ignorealpha        = 0.6,
             input_methods             = true,
             input_methods_ignorealpha = 0.8,
@@ -91,9 +90,10 @@ hl.config({
 
         shadow = {
             enabled      = true,
-            range        = 20,
-            render_power = 3,
-            color        = "rgba(00000055)",
+            range        = 30,
+            offset       = "0 2",
+            render_power = 4,
+            color        = "rgba(00000010)",
         },
     },
 

@@ -1,0 +1,7 @@
+-- Custom variable overrides — loaded before keybindings, modifies the shared table in-place.
+--
+-- local v = require("config.variables")
+-- v.terminal    = "wezterm"
+-- v.fileManager = "nautilus"
+-- v.browser     = "firefox"
+-- v.editor      = "nvim"
