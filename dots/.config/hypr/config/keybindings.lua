@@ -21,7 +21,7 @@ hl.bind(M .. " + mouse:272",   hl.dsp.window.drag(),   { mouse=true })
 hl.bind(M .. " + mouse:273",   hl.dsp.window.resize(), { mouse=true })
 
 -- Workspaces
-for i = 1, 8 do
+for i = 1, 10 do
     hl.bind(M .. " + " .. i,         hl.dsp.focus({ workspace=i }))
     hl.bind(M .. " + SHIFT + " .. i, hl.dsp.window.move({ workspace=i }))
 end
