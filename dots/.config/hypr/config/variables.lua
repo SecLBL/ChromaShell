@@ -2,5 +2,6 @@ return {
     mainMod     = "SUPER",
     terminal    = "kitty",
     fileManager = "dolphin",
-    launcher    = "rofi -show drun",
+    browser     = "librewolf",
+    editor      = "codium",
 }
