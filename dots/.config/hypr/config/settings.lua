@@ -42,10 +42,10 @@ hl.config({
 
 -- ── General ───────────────────────────────────────────────────────────────────
     general = {
-        gaps_in          = 4,
-        gaps_out         = 5,
+        gaps_in          = 2,
+        gaps_out         = 10,
         gaps_workspaces  = 50,
-        border_size      = 1,
+        border_size      = 2,
         col = {
             active_border   = colors.active_border,
             inactive_border = colors.inactive_border,
@@ -127,7 +127,7 @@ hl.config({
 
 -- ── Input ─────────────────────────────────────────────────────────────────────
     input = {
-        kb_layout              = "de",
+        kb_layout              = "us",
         numlock_by_default     = true,
         repeat_delay           = 250,
         repeat_rate            = 35,
