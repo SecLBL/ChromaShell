@@ -21,10 +21,12 @@ hl.bind(M .. " + mouse:272",   hl.dsp.window.drag(),   { mouse=true })
 hl.bind(M .. " + mouse:273",   hl.dsp.window.resize(), { mouse=true })
 
 -- Workspaces
-for i = 1, 10 do
+for i = 1, 9 do
     hl.bind(M .. " + " .. i,         hl.dsp.focus({ workspace=i }))
     hl.bind(M .. " + SHIFT + " .. i, hl.dsp.window.move({ workspace=i }))
 end
+hl.bind(M .. " + 0",         hl.dsp.focus({ workspace=10 }))
+hl.bind(M .. " + SHIFT + 0", hl.dsp.window.move({ workspace=10 }))
 
 -- Audio
 hl.bind("XF86AudioRaiseVolume", hl.dsp.exec_cmd("swayosd-client --output-volume raise"),        { locked=true, repeating=true })
