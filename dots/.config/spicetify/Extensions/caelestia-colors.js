@@ -1,6 +1,5 @@
 // Reads caelestia's color.ini at startup and applies --spice-* CSS variables dynamically.
 (async () => {
-    // Wait for Spicetify to be fully ready (spicetifyWrapper.js may still be setting it up)
     while (typeof Spicetify === 'undefined' || !Spicetify.showNotification) {
         await new Promise(r => setTimeout(r, 300));
     }
@@ -10,13 +9,34 @@
     };
 
     try {
-        // process may not be declared in this Electron renderer context
-        const env = (typeof process !== 'undefined' && process.env) ? process.env : null;
-        if (!env) { notify('process.env nicht verfügbar', true); return; }
+        // Get env vars via /proc/self/environ (works with fetch file:// in Electron)
+        async function readEnv() {
+            const res = await fetch('file:///proc/self/environ');
+            if (!res.ok) return null;
+            const env = {};
+            for (const entry of (await res.text()).split('\0')) {
+                const eq = entry.indexOf('=');
+                if (eq > 0) env[entry.slice(0, eq)] = entry.slice(eq + 1);
+            }
+            return env;
+        }
 
-        const configHome   = env.XDG_CONFIG_HOME || (env.HOME + '/.config');
-        const colorIniPath = configHome + '/spicetify/Themes/caelestia/color.ini';
-        const fileUrl      = 'file://' + colorIniPath;
+        let colorIniPath;
+
+        // Try process.env first (works if nodeIntegration is enabled)
+        if (typeof process !== 'undefined' && process.env?.HOME) {
+            const base = process.env.XDG_CONFIG_HOME || (process.env.HOME + '/.config');
+            colorIniPath = base + '/spicetify/Themes/caelestia/color.ini';
+        } else {
+            // Fall back to /proc/self/environ
+            const env = await readEnv().catch(() => null);
+            if (!env?.HOME) { notify('HOME nicht ermittelbar (process + /proc fehlgeschlagen)', true); return; }
+            const base = env.XDG_CONFIG_HOME || (env.HOME + '/.config');
+            colorIniPath = base + '/spicetify/Themes/caelestia/color.ini';
+        }
+
+        const fileUrl = 'file://' + colorIniPath;
+        notify('Pfad: ' + colorIniPath); // temporary: confirm path is correct
 
         function parseSection(content, section) {
             const colors = {};
@@ -52,7 +72,7 @@
 
         const errors = [];
 
-        // Method 1: window.require (Node.js require, not webpack's local require)
+        // Method 1: window.require (Node.js require, unaffected by webpack's local const require)
         try {
             const req = window.require;
             if (typeof req === 'function') {
@@ -87,6 +107,6 @@
         notify('alle Methoden gescheitert: ' + errors.join(' | '), true);
 
     } catch (e) {
-        notify('unhandled crash: ' + e.message, true);
+        notify('crash: ' + e.message, true);
     }
 })();
