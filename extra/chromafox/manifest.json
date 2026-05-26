@@ -1,6 +1,6 @@
 {
   "manifest_version": 2,
-  "name": "ChromaShell",
+  "name": "ChromaFox",
   "version": "1.0.0",
   "description": "Live browser theming from the ChromaShell color server.",
   "permissions": [
@@ -13,7 +13,7 @@
   },
   "browser_specific_settings": {
     "gecko": {
-      "id": "chromashell@chromashell"
+      "id": "chromafox@chromashell"
     }
   }
 }
