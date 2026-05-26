@@ -1,3 +1,6 @@
+/* Zen color variables are injected via zen-colors.css (written by the caelestia postHook).
+   The --lwt-* bridge below is kept for reference but does not work: Zen does not expose
+   Firefox LWT CSS custom properties when browser.theme.update() is called. */
 /*:root {
     --c-accent: var(--tab-loading-fill);
     --c-text: var(--toolbar-color);
