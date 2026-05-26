@@ -11,8 +11,8 @@
   "buffer_font_size": 16,
   "theme": {
     "mode": "system",
-    "light": "One Light",
-    "dark": "One Dark"
+    "light": "ChromaShell",
+    "dark": "ChromaShell"
   },
   "buffer_font_family": "JetBrainsMono Nerd Font",
   "multi_cursor_modifier": "cmd_or_ctrl",
