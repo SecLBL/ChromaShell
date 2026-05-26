@@ -1,7 +1,7 @@
 return {
     mainMod     = "SUPER",
     terminal    = "kitty",
-    fileManager = "dolphin",
+    fileManager = "thunar",
     browser     = "librewolf",
     editor      = "codium",
 }
