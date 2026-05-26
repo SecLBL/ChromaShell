@@ -1,5 +1,7 @@
-// Fetches caelestia's scheme.json (single source of truth for Material You color roles)
-// from the local socket service and applies --spice-* CSS variables dynamically.
+// Connects to the ChromaShell SSE server (127.0.0.1:29847/events) and applies
+// --spice-* CSS variables from caelestia's Material You color roles.
+// The server sends current colors on connect and pushes live updates on theme change.
+// EventSource auto-reconnects if the connection drops.
 (async () => {
     while (typeof Spicetify === 'undefined' || !Spicetify.showNotification) {
         await new Promise(r => setTimeout(r, 300));
@@ -28,16 +30,9 @@
         'tab-active':         'surfaceContainerHigh',
     };
 
-    try {
-        const res = await fetch('http://127.0.0.1:29847/');
-        if (!res.ok) {
-            Spicetify.showNotification('[caelestia] colors socket: HTTP ' + res.status, true, 4000);
-            return;
-        }
-        const scheme = await res.json();
-        const colours = scheme.colours;
+    function applyScheme(data) {
+        const colours = JSON.parse(data).colours;
         const root    = document.documentElement;
-
         for (const [spice, role] of Object.entries(SPICE_MAP)) {
             const val = colours[role];
             if (!val) continue;
@@ -45,7 +40,8 @@
             root.style.setProperty(`--spice-rgb-${spice}`,
                 `${parseInt(val.slice(0,2),16)},${parseInt(val.slice(2,4),16)},${parseInt(val.slice(4,6),16)}`);
         }
-    } catch (e) {
-        Spicetify.showNotification('[caelestia] colors socket nicht erreichbar: ' + e.message, true, 4000);
     }
+
+    const es = new EventSource('http://127.0.0.1:29847/events');
+    es.onmessage = (e) => { try { applyScheme(e.data); } catch (_) {} };
 })();
