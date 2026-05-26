@@ -1,6 +1,9 @@
 // Reads caelestia's color.ini at startup and applies --spice-* CSS variables dynamically.
 (async () => {
-    await new Promise(res => Spicetify.Events.webpackLoaded.on(res));
+    // Poll until Spicetify is fully initialised (showNotification is a reliable marker)
+    while (!Spicetify?.showNotification) {
+        await new Promise(r => setTimeout(r, 300));
+    }
 
     const configHome   = process.env.XDG_CONFIG_HOME || (process.env.HOME + '/.config');
     const colorIniPath = configHome + '/spicetify/Themes/caelestia/color.ini';
@@ -30,7 +33,7 @@
     function applyColors(content, method) {
         const colors = parseSection(content, 'caelestia');
         const n      = Object.keys(colors).length;
-        if (n === 0) { notify('color.ini gelesen aber 0 Farben geparst (' + method + ')', true); return; }
+        if (n === 0) { notify('color.ini gelesen aber 0 Farben (' + method + ')', true); return; }
         const root = document.documentElement;
         for (const [key, val] of Object.entries(colors)) {
             root.style.setProperty(`--spice-${key}`, `#${val}`);
@@ -39,12 +42,12 @@
             const b = parseInt(val.slice(4, 6), 16);
             root.style.setProperty(`--spice-rgb-${key}`, `${r},${g},${b}`);
         }
-        notify(n + ' Farben geladen via ' + method);
+        notify(n + ' Farben via ' + method);
     }
 
     const errors = [];
 
-    // Method 1: window.require (Node.js require, untouched by webpack's local const require)
+    // Method 1: window.require (Node.js require, unaffected by webpack's local const require)
     try {
         const req = window.require;
         if (typeof req === 'function') {
