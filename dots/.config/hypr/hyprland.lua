@@ -12,7 +12,8 @@ end
 -- variables
 require("config.variables")         -- upstream
 pcall(require, "custom.variables")  -- custom (writable, created once by flake, never overwritten)
-pcall(require, "custom.editor")     -- flake-managed: sets v.editor from editor.app option
+pcall(require, "generated.editor")  -- flake-managed: sets v.editor from editor.app option
+pcall(require, "generated.browser") -- flake-managed: sets v.browser from browser.app option
 
 -- ChromaShell upstream
 require("config.env")
