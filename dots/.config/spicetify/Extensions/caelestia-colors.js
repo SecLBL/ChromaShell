@@ -25,7 +25,17 @@
         return colors;
     }
 
-    function applyColors(content) {
+    const logPath = (process.env.XDG_STATE_HOME || (process.env.HOME + '/.local/state'))
+                    + '/caelestia/spicetify-colors.log';
+
+    function writeLog(msg) {
+        try {
+            const req = window.require;
+            if (typeof req === 'function') req('fs').appendFileSync(logPath, msg + '\n');
+        } catch (_) {}
+    }
+
+    function applyColors(content, method) {
         const colors = parseSection(content, 'caelestia');
         const root   = document.documentElement;
         for (const [key, val] of Object.entries(colors)) {
@@ -35,6 +45,7 @@
             const b = parseInt(val.slice(4, 6), 16);
             root.style.setProperty(`--spice-rgb-${key}`, `${r},${g},${b}`);
         }
+        writeLog('[ok] applied via ' + method + ', keys: ' + Object.keys(colors).join(','));
     }
 
     // Method 1: window.require — Node.js require is on window, webpack only overrides
@@ -44,22 +55,24 @@
         if (typeof req === 'function') {
             const fs      = req('fs');
             const content = fs.readFileSync(colorIniPath, 'utf8');
-            applyColors(content);
+            applyColors(content, 'window.require');
             return;
         }
+        writeLog('[skip] window.require is not a function: ' + typeof req);
     } catch (e) {
-        console.warn('[caelestia] window.require failed:', e.message);
+        writeLog('[fail] window.require: ' + e.message);
     }
 
     // Method 2: fetch with file:// (works when Electron allows file protocol in renderer)
     try {
         const res = await fetch(fileUrl);
         if (res.ok) {
-            applyColors(await res.text());
+            applyColors(await res.text(), 'fetch');
             return;
         }
+        writeLog('[fail] fetch: status ' + res.status);
     } catch (e) {
-        console.warn('[caelestia] fetch failed:', e.message);
+        writeLog('[fail] fetch: ' + e.message);
     }
 
     // Method 3: XMLHttpRequest with file:// (status 0 = success for local files)
@@ -73,11 +86,11 @@
             xhr.onerror = () => reject(new Error('XHR network error'));
             xhr.send();
         });
-        applyColors(content);
+        applyColors(content, 'XMLHttpRequest');
         return;
     } catch (e) {
-        console.warn('[caelestia] XMLHttpRequest failed:', e.message);
+        writeLog('[fail] XMLHttpRequest: ' + e.message);
     }
 
-    console.warn('[caelestia] could not load spicetify colors: all methods failed');
+    writeLog('[fail] all methods failed');
 })();
