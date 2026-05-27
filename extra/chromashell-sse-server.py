@@ -95,5 +95,6 @@ class Handler(http.server.BaseHTTPRequestHandler):
 
 
 if __name__ == "__main__":
+    http.server.ThreadingHTTPServer.allow_reuse_address = True
     with http.server.ThreadingHTTPServer(("127.0.0.1", PORT), Handler) as httpd:
         httpd.serve_forever()
