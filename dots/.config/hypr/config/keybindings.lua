@@ -123,9 +123,10 @@ hl.define_submap("global", "global", function()
     hl.bind(M .. " + X",                      hl.dsp.window.resize(),                         { mouse=true })
 
     -- ── Window — actions ──────────────────────────────────────────────────────
-    hl.bind("CTRL + SUPER + backslash",       hl.dsp.window.center(1))
-    hl.bind("CTRL + SUPER + ALT + backslash", hl.dsp.exec_cmd("hyprctl dispatch resizeactive exact 55% 70%; hyprctl dispatch centerwindow 1"))
-    hl.bind(M .. " + ALT + backslash",        hl.dsp.exec_cmd("caelestia resizer pip"))
+    hl.bind("CTRL + SUPER + LESS",       hl.dsp.window.center(1))
+    hl.bind("CTRL + SUPER + ALT + LESS", hl.dsp.window.resize({ x="55%", y="70%" }))
+    hl.bind("CTRL + SUPER + ALT + LESS", hl.dsp.window.center(1))
+    hl.bind(M .. " + ALT + LESS",        hl.dsp.exec_cmd("caelestia resizer pip"))
     hl.bind(M .. " + P",                      hl.dsp.window.pin())
     hl.bind(M .. " + F",                      hl.dsp.window.fullscreen(0))
     hl.bind(M .. " + ALT + F",               hl.dsp.window.fullscreen(1))
