@@ -113,11 +113,11 @@ if [[ "$comms" == "element" ]]; then
         tmp=$(mktemp)
         jq --argjson theme "$element_theme" \
             '.custom_themes = ((.custom_themes // []) | map(select(.name != "ChromaShell"))) + [$theme]
-             | .default_theme = "custom-ChromaShell"' \
+             | .default_theme = "ChromaShell"' \
             "$element_cfg" > "$tmp" && mv "$tmp" "$element_cfg"
     else
         jq -n --argjson theme "$element_theme" \
-            '{ custom_themes: [$theme], default_theme: "custom-ChromaShell" }' \
+            '{ custom_themes: [$theme], default_theme: "ChromaShell" }' \
             > "$element_cfg"
     fi
 fi
