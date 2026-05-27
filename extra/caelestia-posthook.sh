@@ -46,7 +46,7 @@ if [[ "$comms" == "element" ]]; then
     outline_var=$(jq -r '.outlineVariant'    <<< "$SCHEME_COLOURS")
     error_col=$(jq -r '.error'               <<< "$SCHEME_COLOURS")
     primary_cont=$(jq -r '.primaryContainer' <<< "$SCHEME_COLOURS")
-    success_col="4CAF50"
+    success_col=$(jq -r '.success // "4CAF50"' <<< "$SCHEME_COLOURS")
     is_dark=$(jq -r 'if .mode == "dark" then "true" else "false" end' "$scheme_json" 2>/dev/null || echo "true")
 
     element_theme=$(jq -n \
