@@ -124,8 +124,13 @@ hl.define_submap("global", "global", function()
 
     -- ── Window — actions ──────────────────────────────────────────────────────
     hl.bind("CTRL + SUPER + LESS",       hl.dsp.window.center(1))
-    hl.bind("CTRL + SUPER + ALT + LESS", hl.dsp.window.resize({ x="55%", y="70%" }))
-    hl.bind("CTRL + SUPER + ALT + LESS", hl.dsp.window.center(1))
+    hl.bind("CTRL + SUPER + ALT + LESS", function()
+        local mon = hl.get_active_monitor()
+        if mon then
+            hl.dispatch(hl.dsp.window.resize({ x=math.floor(mon.width * 0.55), y=math.floor(mon.height * 0.70) }))
+            hl.dispatch(hl.dsp.window.center(1))
+        end
+    end)
     hl.bind(M .. " + ALT + LESS",        hl.dsp.exec_cmd("caelestia resizer pip"))
     hl.bind(M .. " + P",                      hl.dsp.window.pin())
     hl.bind(M .. " + F",                      hl.dsp.window.fullscreen(0))
