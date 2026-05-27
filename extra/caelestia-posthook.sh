@@ -107,8 +107,8 @@ if [[ "$comms" == "element" ]]; then
           }
         }')
 
-    element_cfg="$HOME/.config/Element/config.json"
-    mkdir -p "$HOME/.config/Element"
+    element_cfg="${XDG_CONFIG_HOME:-$HOME/.config}/chromashell/element-config.json"
+    mkdir -p "${XDG_CONFIG_HOME:-$HOME/.config}/chromashell"
     if [ -f "$element_cfg" ]; then
         tmp=$(mktemp)
         jq --argjson theme "$element_theme" \
