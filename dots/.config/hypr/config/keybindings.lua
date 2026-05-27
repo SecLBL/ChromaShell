@@ -101,20 +101,20 @@ hl.define_submap("global", "global", function()
     hl.bind(M .. " + down",                   hl.dsp.focus({ direction="down" }))
 
     -- ── Window — move (keyboard) ──────────────────────────────────────────────
-    hl.bind(M .. " + SHIFT + left",           hl.dsp.exec_cmd("hyprctl dispatch movewindow l"))
-    hl.bind(M .. " + SHIFT + right",          hl.dsp.exec_cmd("hyprctl dispatch movewindow r"))
-    hl.bind(M .. " + SHIFT + up",             hl.dsp.exec_cmd("hyprctl dispatch movewindow u"))
-    hl.bind(M .. " + SHIFT + down",           hl.dsp.exec_cmd("hyprctl dispatch movewindow d"))
+    hl.bind(M .. " + SHIFT + left",           hl.dsp.window.move({ direction="left" }))
+    hl.bind(M .. " + SHIFT + right",          hl.dsp.window.move({ direction="right" }))
+    hl.bind(M .. " + SHIFT + up",             hl.dsp.window.move({ direction="up" }))
+    hl.bind(M .. " + SHIFT + down",           hl.dsp.window.move({ direction="down" }))
 
     -- ── Window — resize (keyboard) ────────────────────────────────────────────
-    hl.bind(M .. " + Minus",                  hl.dsp.exec_cmd("hyprctl dispatch resizeactive -10% 0"),  { repeating=true })
-    hl.bind(M .. " + Equal",                  hl.dsp.exec_cmd("hyprctl dispatch resizeactive 10% 0"),   { repeating=true })
-    hl.bind(M .. " + SHIFT + Minus",          hl.dsp.exec_cmd("hyprctl dispatch resizeactive 0 -10%"),  { repeating=true })
-    hl.bind(M .. " + SHIFT + Equal",          hl.dsp.exec_cmd("hyprctl dispatch resizeactive 0 10%"),   { repeating=true })
-    hl.bind(M .. " + ALT + left",             hl.dsp.exec_cmd("hyprctl dispatch resizeactive -10% 0"),  { repeating=true })
-    hl.bind(M .. " + ALT + right",            hl.dsp.exec_cmd("hyprctl dispatch resizeactive 10% 0"),   { repeating=true })
-    hl.bind(M .. " + ALT + up",               hl.dsp.exec_cmd("hyprctl dispatch resizeactive 0 -10%"),  { repeating=true })
-    hl.bind(M .. " + ALT + down",             hl.dsp.exec_cmd("hyprctl dispatch resizeactive 0 10%"),   { repeating=true })
+    hl.bind(M .. " + Minus",                  hl.dsp.window.resize({ x=-100, y=0,    relative=true }),  { repeating=true })
+    hl.bind(M .. " + Equal",                  hl.dsp.window.resize({ x=100,  y=0,    relative=true }),  { repeating=true })
+    hl.bind(M .. " + SHIFT + Minus",          hl.dsp.window.resize({ x=0,    y=-100, relative=true }),  { repeating=true })
+    hl.bind(M .. " + SHIFT + Equal",          hl.dsp.window.resize({ x=0,    y=100,  relative=true }),  { repeating=true })
+    hl.bind(M .. " + ALT + left",             hl.dsp.window.resize({ x=-100, y=0,    relative=true }),  { repeating=true })
+    hl.bind(M .. " + ALT + right",            hl.dsp.window.resize({ x=100,  y=0,    relative=true }),  { repeating=true })
+    hl.bind(M .. " + ALT + up",               hl.dsp.window.resize({ x=0,    y=-100, relative=true }),  { repeating=true })
+    hl.bind(M .. " + ALT + down",             hl.dsp.window.resize({ x=0,    y=100,  relative=true }),  { repeating=true })
 
     -- ── Window — mouse drag / resize ──────────────────────────────────────────
     hl.bind(M .. " + mouse:272",              hl.dsp.window.drag(),                           { mouse=true })
