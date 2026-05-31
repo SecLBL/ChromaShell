@@ -72,7 +72,46 @@ start_plugin() {
     echo "Started jalv $name (pid $!) — URI: $uri"
 }
 
-# Alle Plugins aus der Config starten
+link_chains() {
+    local nodes=(mic-gate mic-nr mic-comp chat-nr chat-comp)
+
+    # Wait for all jalv nodes to appear in PipeWire (max 15 s)
+    for node in "${nodes[@]}"; do
+        local elapsed=0
+        until pw-link -l 2>/dev/null | grep -q "^${node}:"; do
+            sleep 0.5
+            elapsed=$((elapsed + 1))
+            if [[ $elapsed -ge 30 ]]; then
+                echo "Warning: node '${node}' did not appear within 15 s — skipping link step" >&2
+                return 1
+            fi
+        done
+    done
+
+    # Mic chain: mic_chain_internal_out → gate → nr → comp → mic_chain_internal_in
+    pw-link "mic_chain_internal_out:capture_FL" "mic-gate:in_l"
+    pw-link "mic_chain_internal_out:capture_FR" "mic-gate:in_r"
+    pw-link "mic-gate:out_l"       "mic-nr:audio_in_1"
+    pw-link "mic-gate:out_r"       "mic-nr:audio_in_2"
+    pw-link "mic-nr:audio_out_1"   "mic-comp:in_l"
+    pw-link "mic-nr:audio_out_2"   "mic-comp:in_r"
+    pw-link "mic-comp:out_l"       "mic_chain_internal_in:playback_FL"
+    pw-link "mic-comp:out_r"       "mic_chain_internal_in:playback_FR"
+
+    # Chat chain: chat_chain_internal_out → nr → comp → chat_chain_internal_in
+    pw-link "chat_chain_internal_out:capture_FL" "chat-nr:audio_in_1"
+    pw-link "chat_chain_internal_out:capture_FR" "chat-nr:audio_in_2"
+    pw-link "chat-nr:audio_out_1"  "chat-comp:in_l"
+    pw-link "chat-nr:audio_out_2"  "chat-comp:in_r"
+    pw-link "chat-comp:out_l"      "chat_chain_internal_in:playback_FL"
+    pw-link "chat-comp:out_r"      "chat_chain_internal_in:playback_FR"
+
+    echo "Audio chains linked."
+}
+
+# Start all plugins from config
 while IFS=$'\t' read -r name uri; do
     start_plugin "$name" "$uri"
 done < <("$JQ" -r 'keys_unsorted[] as $k | "\($k)\t\(.[$k].uri)"' "$CONFIG_FILE")
+
+link_chains &
