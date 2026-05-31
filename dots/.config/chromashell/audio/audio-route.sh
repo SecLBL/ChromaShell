@@ -1,0 +1,46 @@
+#!/usr/bin/env bash
+# audio-route.sh <bus> <new-device-name> [old-device-name]
+# Connects a physical PipeWire device to a ChromaShell bus via pw-link.
+# bus: general | chat | mic
+#   general — MixBus.output  → device playback ports
+#   chat    — MixBusChat.output → device playback ports
+#   mic     — device capture ports → mic_chain_in playback ports
+
+set -euo pipefail
+
+BUS="$1"
+DEVICE="$2"
+OLD="${3:-}"
+
+disc() { pw-link -d "$1" "$2" 2>/dev/null || true; }
+
+case "$BUS" in
+    general)
+        if [[ -n "$OLD" ]]; then
+            disc "MixBus.output:capture_FL" "${OLD}:playback_FL"
+            disc "MixBus.output:capture_FR" "${OLD}:playback_FR"
+        fi
+        pw-link "MixBus.output:capture_FL" "${DEVICE}:playback_FL"
+        pw-link "MixBus.output:capture_FR" "${DEVICE}:playback_FR"
+        ;;
+    chat)
+        if [[ -n "$OLD" ]]; then
+            disc "MixBusChat.output:capture_FL" "${OLD}:playback_FL"
+            disc "MixBusChat.output:capture_FR" "${OLD}:playback_FR"
+        fi
+        pw-link "MixBusChat.output:capture_FL" "${DEVICE}:playback_FL"
+        pw-link "MixBusChat.output:capture_FR" "${DEVICE}:playback_FR"
+        ;;
+    mic)
+        if [[ -n "$OLD" ]]; then
+            disc "${OLD}:capture_FL" "mic_chain_in:playback_FL"
+            disc "${OLD}:capture_FR" "mic_chain_in:playback_FR"
+        fi
+        pw-link "${DEVICE}:capture_FL" "mic_chain_in:playback_FL"
+        pw-link "${DEVICE}:capture_FR" "mic_chain_in:playback_FR"
+        ;;
+    *)
+        echo "audio-route.sh: unknown bus '${BUS}' (expected: general|chat|mic)" >&2
+        exit 1
+        ;;
+esac
