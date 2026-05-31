@@ -68,7 +68,7 @@ start_plugin() {
         while true; do sleep 3600; done
     ) &
 
-    JACK_CLIENT_NAME="$name" ${PW_JACK:+"$PW_JACK"} "$JALV" "$uri" < "$fifo" &
+    ${PW_JACK:+"$PW_JACK"} "$JALV" -n "$name" "$uri" < "$fifo" &
     echo "Started jalv $name (pid $!) — URI: $uri"
 }
 
@@ -78,7 +78,7 @@ link_chains() {
     # Wait for all jalv nodes to appear in PipeWire (max 15 s)
     for node in "${nodes[@]}"; do
         local elapsed=0
-        until pw-link -l 2>/dev/null | grep -q "^${node}:"; do
+        until pw-link -o 2>/dev/null | grep -q "^${node}:"; do
             sleep 0.5
             elapsed=$((elapsed + 1))
             if [[ $elapsed -ge 30 ]]; then
