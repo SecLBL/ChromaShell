@@ -72,6 +72,31 @@ start_plugin() {
     echo "Started jalv $name (pid $!) — URI: $uri"
 }
 
+link_static() {
+    # Wait for the loopback and filter-chain source nodes (max 10 s)
+    for node in mic_chain_out MixBusChat.output; do
+        local elapsed=0
+        until pw-link -o 2>/dev/null | grep -q "^${node}:"; do
+            sleep 0.5
+            elapsed=$((elapsed + 1))
+            if [[ $elapsed -ge 20 ]]; then
+                echo "Warning: node '${node}' did not appear within 10 s — skipping static links" >&2
+                return 1
+            fi
+        done
+    done
+
+    # mic_chain_out → VirtualCable.input  (processed mic into virtual cable for Discord etc.)
+    pw-link "mic_chain_out:capture_FL"     "VirtualCable.input:playback_FL"
+    pw-link "mic_chain_out:capture_FR"     "VirtualCable.input:playback_FR"
+
+    # MixBusChat.output → chat_chain_in  (comm audio through chat processing chain)
+    pw-link "MixBusChat.output:capture_FL" "chat_chain_in:playback_FL"
+    pw-link "MixBusChat.output:capture_FR" "chat_chain_in:playback_FR"
+
+    echo "Static routes linked."
+}
+
 link_chains() {
     local nodes=(mic-gate mic-nr mic-comp chat-nr chat-comp)
 
@@ -114,4 +139,5 @@ while IFS=$'\t' read -r name uri; do
     start_plugin "$name" "$uri"
 done < <("$JQ" -r 'keys_unsorted[] as $k | "\($k)\t\(.[$k].uri)"' "$CONFIG_FILE")
 
+link_static &
 link_chains &
