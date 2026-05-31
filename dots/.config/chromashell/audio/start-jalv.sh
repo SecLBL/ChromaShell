@@ -2,7 +2,7 @@
 # ChromaShell — startet alle jalv LV2-Plugin-Instanzen
 #
 # Liest Plugin-Definitionen und aktuelle Parameter aus:
-#   $XDG_CONFIG_HOME/chromashell/audio.json   (Single Source of Truth)
+#   $XDG_CONFIG_HOME/chromashell/audio/runtime/audio.json   (Single Source of Truth)
 #
 # Wenn die Config fehlt, wird sie aus audio.json.default angelegt.
 # Jede Instanz bekommt ein FIFO unter /tmp/jalv-<name> für live Steuerung.
@@ -21,7 +21,7 @@ if [[ -z "$JQ" ]]; then
     exit 1
 fi
 
-CONFIG_DIR="${XDG_CONFIG_HOME:-$HOME/.config}/chromashell"
+CONFIG_DIR="${XDG_CONFIG_HOME:-$HOME/.config}/chromashell/audio/runtime"
 CONFIG_FILE="$CONFIG_DIR/audio.json"
 DEFAULT_CONFIG="${CHROMASHELL_DEFAULT_CONFIG:-$(dirname "$(readlink -f "$0")")/audio.json.default}"
 

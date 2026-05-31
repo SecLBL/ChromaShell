@@ -90,7 +90,7 @@ if [[ -z "$JQ" ]]; then
     exit 1
 fi
 
-CONFIG_DIR="${XDG_CONFIG_HOME:-$HOME/.config}/chromashell"
+CONFIG_DIR="${XDG_CONFIG_HOME:-$HOME/.config}/chromashell/audio/runtime"
 CONFIG_FILE="$CONFIG_DIR/audio.json"
 DEFAULT_CONFIG="${CHROMASHELL_DEFAULT_CONFIG:-$(dirname "$(readlink -f "$0")")/audio.json.default}"
 
