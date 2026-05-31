@@ -17,7 +17,7 @@ hl.on("hyprland.start", function()
     hl.exec_cmd("mpris-proxy")
 
     -- Audio
-    hl.exec_cmd("bash ~/.config/hypr/scripts/audio/start-jalv.sh")
+    hl.exec_cmd("bash ~/.config/chromashell/audio/start-jalv.sh")
     hl.exec_cmd("sleep 2 && qpwgraph -a -m")
 
     -- Shell
