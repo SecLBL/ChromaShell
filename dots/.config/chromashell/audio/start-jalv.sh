@@ -136,10 +136,10 @@ link_chains() {
     pw-link "chat-comp:out_r"      "chat_chain_internal_in:playback_FR"
 
     # General chain: general_chain_internal_out → eq → general_chain_internal_in
-    pw-link "general_chain_internal_out:capture_FL" "general-eq:in_l"
-    pw-link "general_chain_internal_out:capture_FR" "general-eq:in_r"
-    pw-link "general-eq:out_l" "general_chain_internal_in:playback_FL"
-    pw-link "general-eq:out_r" "general_chain_internal_in:playback_FR"
+    pw-link "general_chain_internal_out:capture_FL" "general-eq:inL"
+    pw-link "general_chain_internal_out:capture_FR" "general-eq:inR"
+    pw-link "general-eq:outL" "general_chain_internal_in:playback_FL"
+    pw-link "general-eq:outR" "general_chain_internal_in:playback_FR"
 
     echo "Audio chains linked."
 }
