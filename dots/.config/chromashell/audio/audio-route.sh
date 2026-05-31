@@ -25,11 +25,11 @@ case "$BUS" in
         ;;
     chat)
         if [[ -n "$OLD" ]]; then
-            disc "MixBusChat.output:capture_FL" "${OLD}:playback_FL"
-            disc "MixBusChat.output:capture_FR" "${OLD}:playback_FR"
+            disc "chat_chain_out:capture_FL" "${OLD}:playback_FL"
+            disc "chat_chain_out:capture_FR" "${OLD}:playback_FR"
         fi
-        pw-link "MixBusChat.output:capture_FL" "${DEVICE}:playback_FL"
-        pw-link "MixBusChat.output:capture_FR" "${DEVICE}:playback_FR"
+        pw-link "chat_chain_out:capture_FL" "${DEVICE}:playback_FL"
+        pw-link "chat_chain_out:capture_FR" "${DEVICE}:playback_FR"
         ;;
     mic)
         if [[ -n "$OLD" ]]; then
