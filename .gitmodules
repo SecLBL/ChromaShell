@@ -1,0 +1,6 @@
+[submodule "shell"]
+	path = shell
+	url = https://github.com/SecLBL/CS-shell.git
+[submodule "cli"]
+	path = cli
+	url = https://github.com/SecLBL/CS-cli.git
