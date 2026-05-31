@@ -8,7 +8,7 @@
 #   audio-param.sh --reset <plugin>               # reset plugin to defaults
 #   audio-param.sh --reset-all                    # reset whole config
 #
-# Plugins:  mic-gate | mic-nr | mic-comp | chat-nr | chat-comp
+# Plugins:  mic-gate | mic-nr | mic-comp | chat-nr | chat-comp | general-eq
 #
 # Quickshell-Aufruf:
 #   Process { command: ["audio-param.sh", "mic-comp", "cr", "4.0"] }
@@ -81,6 +81,40 @@
 #   scp  SC preamp          linear  Sidechain pre-amplification    (0–100)
 #
 #   All linear gain values: linear = 10^(dB/20)  e.g. -20dB → 0.1, +6dB → 2.0
+#
+# ── general-eq (fil4 Parametric EQ Stereo — x42-plugins) ───────────────────
+#
+#   Master
+#   enable   EQ bypass        0/1      0 = EQ bypassed (disabled)        (0–1, default 1)
+#   gain     Master gain      dB       Global output gain                 (-18–+18, default 0)
+#
+#   HP filter (2nd-order Butterworth highpass)
+#   HighPass HP enable        0/1      Enable highpass filter             (default 0)
+#   HPfreq   HP frequency     Hz       Highpass cutoff                    (5–1250, log)
+#   HPQ      HP resonance     —        0=no res, 0.7=flat, 1.4=resonant  (0–1.4)
+#
+#   Low shelf
+#   LSsec    LS enable        0/1      Enable low-shelf filter            (default 1)
+#   LSfreq   LS frequency     Hz       Shelf turnover frequency           (25–400, log)
+#   LSq      LS bandwidth     oct      Shelf bandwidth                    (0.0625–4)
+#   LSgain   LS gain          dB       Shelf boost/cut                    (-18–+18)
+#
+#   Peaking bands 1–4  (symbols: sec1–4, freq1–4, q1–4, gain1–4)
+#   secN     Band N enable    0/1      Enable peaking band N              (default 1)
+#   freqN    Band N frequency Hz       Center frequency                   (varies per band, log)
+#   qN       Band N bandwidth oct      Bandwidth (higher = narrower)      (0.0625–4)
+#   gainN    Band N gain      dB       Boost/cut at center frequency      (-18–+18)
+#
+#   High shelf
+#   HSsec    HS enable        0/1      Enable high-shelf filter           (default 1)
+#   HSfreq   HS frequency     Hz       Shelf turnover frequency           (1000–16000, log)
+#   HSq      HS bandwidth     oct      Shelf bandwidth                    (0.0625–4)
+#   HSgain   HS gain          dB       Shelf boost/cut                    (-18–+18)
+#
+#   LP filter (2nd-order Butterworth lowpass)
+#   LowPass  LP enable        0/1      Enable lowpass filter              (default 0)
+#   LPfreq   LP frequency     Hz       Lowpass cutoff                     (500–20000, log)
+#   LPQ      LP resonance     —        0=no res, 0.7=flat, 1.4=resonant  (0–1.4)
 
 set -euo pipefail
 
