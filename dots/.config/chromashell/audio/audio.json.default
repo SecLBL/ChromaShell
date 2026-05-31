@@ -49,5 +49,9 @@
       "kn":   0.55208,
       "mk":   1.41254
     }
+  },
+  "general-eq": {
+    "uri": "http://gareus.org/oss/lv2/fil4#stereo",
+    "params": {}
   }
 }

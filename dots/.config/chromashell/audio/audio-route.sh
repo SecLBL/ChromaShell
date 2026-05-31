@@ -17,11 +17,11 @@ disc() { pw-link -d "$1" "$2" 2>/dev/null || true; }
 case "$BUS" in
     general)
         if [[ -n "$OLD" ]]; then
-            disc "MixBus.output:capture_FL" "${OLD}:playback_FL"
-            disc "MixBus.output:capture_FR" "${OLD}:playback_FR"
+            disc "general_chain_out:capture_FL" "${OLD}:playback_FL"
+            disc "general_chain_out:capture_FR" "${OLD}:playback_FR"
         fi
-        pw-link "MixBus.output:capture_FL" "${DEVICE}:playback_FL"
-        pw-link "MixBus.output:capture_FR" "${DEVICE}:playback_FR"
+        pw-link "general_chain_out:capture_FL" "${DEVICE}:playback_FL"
+        pw-link "general_chain_out:capture_FR" "${DEVICE}:playback_FR"
         ;;
     chat)
         if [[ -n "$OLD" ]]; then

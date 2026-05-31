@@ -74,7 +74,7 @@ start_plugin() {
 
 link_static() {
     # Wait for the loopback and filter-chain source nodes (max 10 s)
-    for node in mic_chain_out MixBusChat.output; do
+    for node in mic_chain_out MixBusChat.output MixBus.output; do
         local elapsed=0
         until pw-link -o 2>/dev/null | grep -q "^${node}:"; do
             sleep 0.5
@@ -94,11 +94,15 @@ link_static() {
     pw-link "MixBusChat.output:capture_FL" "chat_chain_in:playback_FL"
     pw-link "MixBusChat.output:capture_FR" "chat_chain_in:playback_FR"
 
+    # MixBus.output → general_chain_in  (main audio through general processing chain)
+    pw-link "MixBus.output:capture_FL"     "general_chain_in:playback_FL"
+    pw-link "MixBus.output:capture_FR"     "general_chain_in:playback_FR"
+
     echo "Static routes linked."
 }
 
 link_chains() {
-    local nodes=(mic-gate mic-nr mic-comp chat-nr chat-comp)
+    local nodes=(mic-gate mic-nr mic-comp chat-nr chat-comp general-eq)
 
     # Wait for all jalv nodes to appear in PipeWire (max 15 s)
     for node in "${nodes[@]}"; do
@@ -130,6 +134,12 @@ link_chains() {
     pw-link "chat-nr:audio_out_2"  "chat-comp:in_r"
     pw-link "chat-comp:out_l"      "chat_chain_internal_in:playback_FL"
     pw-link "chat-comp:out_r"      "chat_chain_internal_in:playback_FR"
+
+    # General chain: general_chain_internal_out → eq → general_chain_internal_in
+    pw-link "general_chain_internal_out:capture_FL" "general-eq:in_l"
+    pw-link "general_chain_internal_out:capture_FR" "general-eq:in_r"
+    pw-link "general-eq:out_l" "general_chain_internal_in:playback_FL"
+    pw-link "general-eq:out_r" "general_chain_internal_in:playback_FR"
 
     echo "Audio chains linked."
 }
