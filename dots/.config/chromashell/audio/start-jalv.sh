@@ -10,6 +10,7 @@
 set -euo pipefail
 
 JALV="$(command -v jalv)"
+PW_JACK="$(command -v pw-jack || true)"
 JQ="$(command -v jq)"
 
 if [[ -z "$JALV" ]]; then
@@ -67,7 +68,7 @@ start_plugin() {
         while true; do sleep 3600; done
     ) &
 
-    JACK_CLIENT_NAME="$name" "$JALV" "$uri" < "$fifo" &
+    JACK_CLIENT_NAME="$name" ${PW_JACK:+"$PW_JACK"} "$JALV" "$uri" < "$fifo" &
     echo "Started jalv $name (pid $!) — URI: $uri"
 }
 
