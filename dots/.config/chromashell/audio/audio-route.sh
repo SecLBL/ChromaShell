@@ -44,3 +44,12 @@ case "$BUS" in
         exit 1
         ;;
 esac
+
+# Persist the selection so it survives reboots
+ROUTING_FILE="${XDG_CONFIG_HOME:-$HOME/.config}/chromashell/audio/runtime/routing.json"
+mkdir -p "$(dirname "$ROUTING_FILE")"
+existing=$(cat "$ROUTING_FILE" 2>/dev/null || echo '{}')
+printf '%s' "$existing" \
+    | jq --arg bus "$BUS" --arg dev "$DEVICE" '.[$bus] = $dev' \
+    > "${ROUTING_FILE}.tmp" \
+    && mv "${ROUTING_FILE}.tmp" "$ROUTING_FILE"
