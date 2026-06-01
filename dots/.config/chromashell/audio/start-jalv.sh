@@ -7,6 +7,10 @@
 # Wenn die Config fehlt, wird sie aus audio.json.default angelegt.
 # Jede Instanz bekommt ein FIFO unter /tmp/jalv-<name> für live Steuerung.
 # Log: /tmp/start-jalv.log
+#
+# Läuft als Type=simple systemd-Service. Bleibt im Vordergrund und überwacht
+# die jalv-Kindprozesse. Stirbt ein Plugin, exitiert das Script mit Code 1
+# → systemd Restart=on-failure startet die gesamte Chain neu.
 
 set -euo pipefail
 exec >> /tmp/start-jalv.log 2>&1
@@ -17,11 +21,11 @@ PW_JACK="$(command -v pw-jack || true)"
 JQ="$(command -v jq)"
 
 if [[ -z "$JALV" ]]; then
-    echo "Error: jalv nicht im PATH" >&2
+    echo "Error: jalv not in PATH" >&2
     exit 1
 fi
 if [[ -z "$JQ" ]]; then
-    echo "Error: jq nicht im PATH (brauchen wir zum JSON-Parsen)" >&2
+    echo "Error: jq not in PATH" >&2
     exit 1
 fi
 
@@ -29,30 +33,41 @@ CONFIG_DIR="${XDG_CONFIG_HOME:-$HOME/.config}/chromashell/audio/runtime"
 CONFIG_FILE="$CONFIG_DIR/audio.json"
 DEFAULT_CONFIG="${CHROMASHELL_DEFAULT_CONFIG:-$(dirname "$(readlink -f "$0")")/audio.json.default}"
 
-# Erstinit: Config aus Defaults anlegen, falls noch keine da
 if [[ ! -f "$CONFIG_FILE" ]]; then
     mkdir -p "$CONFIG_DIR"
     if [[ -f "$DEFAULT_CONFIG" ]]; then
         cp "$DEFAULT_CONFIG" "$CONFIG_FILE"
-        echo "Initial audio.json aus Defaults angelegt: $CONFIG_FILE"
+        echo "Initial audio.json created from defaults: $CONFIG_FILE"
     else
-        echo "Error: weder $CONFIG_FILE noch $DEFAULT_CONFIG vorhanden" >&2
+        echo "Error: neither $CONFIG_FILE nor $DEFAULT_CONFIG found" >&2
         exit 1
     fi
 fi
 
-# Config validieren
 if ! "$JQ" empty "$CONFIG_FILE" 2>/dev/null; then
-    echo "Error: $CONFIG_FILE ist kein valides JSON" >&2
+    echo "Error: $CONFIG_FILE is not valid JSON" >&2
     exit 1
 fi
+
+# PID tracking — jalv processes and their FIFO keeper processes
+declare -A JALV_PIDS=()
+declare -A KEEPER_PIDS=()
+
+cleanup() {
+    echo "Cleaning up jalv processes..."
+    for pid in "${JALV_PIDS[@]}"  "${KEEPER_PIDS[@]}"; do
+        kill "$pid" 2>/dev/null || true
+    done
+    rm -f /tmp/jalv-*
+    echo "Cleanup done."
+}
+trap cleanup EXIT
 
 start_plugin() {
     local name="$1"
     local uri="$2"
     local fifo="/tmp/jalv-${name}"
 
-    # Stale FIFO aus alter Session entfernen
     [[ -p "$fifo" ]] && rm -f "$fifo"
     mkfifo "$fifo"
 
@@ -70,9 +85,11 @@ start_plugin() {
         fi
         while true; do sleep 3600; done
     ) &
+    KEEPER_PIDS["$name"]=$!
 
     ${PW_JACK:+"$PW_JACK"} "$JALV" -n "$name" "$uri" < "$fifo" &
-    echo "Started jalv $name (pid $!) — URI: $uri"
+    JALV_PIDS["$name"]=$!
+    echo "Started jalv $name (pid ${JALV_PIDS[$name]}) — URI: $uri"
 }
 
 wait_node_out() {
@@ -94,23 +111,17 @@ link_static() {
     wait_node_out "MixBusChat.output" || return 1
     wait_node_out "MixBus.output"     || return 1
 
-    # mic_chain_out → VirtualCable.input  (processed mic into virtual cable for Discord etc.)
     pw-link "mic_chain_out:capture_FL"     "VirtualCable.input:playback_FL" || true
     pw-link "mic_chain_out:capture_FR"     "VirtualCable.input:playback_FR" || true
-
-    # MixBusChat.output → chat_chain_in  (comm audio through chat processing chain)
-    pw-link "MixBusChat.output:capture_FL" "chat_chain_in:playback_FL" || true
-    pw-link "MixBusChat.output:capture_FR" "chat_chain_in:playback_FR" || true
-
-    # MixBus.output → general_chain_in  (main audio through general processing chain)
-    pw-link "MixBus.output:capture_FL"     "general_chain_in:playback_FL" || true
-    pw-link "MixBus.output:capture_FR"     "general_chain_in:playback_FR" || true
+    pw-link "MixBusChat.output:capture_FL" "chat_chain_in:playback_FL"      || true
+    pw-link "MixBusChat.output:capture_FR" "chat_chain_in:playback_FR"      || true
+    pw-link "MixBus.output:capture_FL"     "general_chain_in:playback_FL"   || true
+    pw-link "MixBus.output:capture_FR"     "general_chain_in:playback_FR"   || true
 
     echo "Static routes linked."
 }
 
 link_chains() {
-    # Wait for jalv plugin nodes AND filter-chain internal nodes
     local out_nodes=(
         mic-gate mic-nr mic-comp chat-nr chat-comp general-eq
         mic_chain_internal_out chat_chain_internal_out general_chain_internal_out
@@ -119,37 +130,46 @@ link_chains() {
         wait_node_out "$node" 30 || return 1
     done
 
-    # Mic chain: mic_chain_internal_out → gate → nr → comp → mic_chain_internal_in
-    pw-link "mic_chain_internal_out:capture_FL" "mic-gate:in_l"      || true
-    pw-link "mic_chain_internal_out:capture_FR" "mic-gate:in_r"      || true
-    pw-link "mic-gate:out_l"                    "mic-nr:audio_in_1"  || true
-    pw-link "mic-gate:out_r"                    "mic-nr:audio_in_2"  || true
-    pw-link "mic-nr:audio_out_1"                "mic-comp:in_l"      || true
-    pw-link "mic-nr:audio_out_2"                "mic-comp:in_r"      || true
-    pw-link "mic-comp:out_l"    "mic_chain_internal_in:playback_FL"  || true
-    pw-link "mic-comp:out_r"    "mic_chain_internal_in:playback_FR"  || true
+    pw-link "mic_chain_internal_out:capture_FL" "mic-gate:in_l"             || true
+    pw-link "mic_chain_internal_out:capture_FR" "mic-gate:in_r"             || true
+    pw-link "mic-gate:out_l"                    "mic-nr:audio_in_1"         || true
+    pw-link "mic-gate:out_r"                    "mic-nr:audio_in_2"         || true
+    pw-link "mic-nr:audio_out_1"                "mic-comp:in_l"             || true
+    pw-link "mic-nr:audio_out_2"                "mic-comp:in_r"             || true
+    pw-link "mic-comp:out_l"    "mic_chain_internal_in:playback_FL"         || true
+    pw-link "mic-comp:out_r"    "mic_chain_internal_in:playback_FR"         || true
 
-    # Chat chain: chat_chain_internal_out → nr → comp → chat_chain_internal_in
-    pw-link "chat_chain_internal_out:capture_FL" "chat-nr:audio_in_1" || true
-    pw-link "chat_chain_internal_out:capture_FR" "chat-nr:audio_in_2" || true
-    pw-link "chat-nr:audio_out_1"                "chat-comp:in_l"     || true
-    pw-link "chat-nr:audio_out_2"                "chat-comp:in_r"     || true
-    pw-link "chat-comp:out_l"    "chat_chain_internal_in:playback_FL" || true
-    pw-link "chat-comp:out_r"    "chat_chain_internal_in:playback_FR" || true
+    pw-link "chat_chain_internal_out:capture_FL" "chat-nr:audio_in_1"       || true
+    pw-link "chat_chain_internal_out:capture_FR" "chat-nr:audio_in_2"       || true
+    pw-link "chat-nr:audio_out_1"                "chat-comp:in_l"           || true
+    pw-link "chat-nr:audio_out_2"                "chat-comp:in_r"           || true
+    pw-link "chat-comp:out_l"    "chat_chain_internal_in:playback_FL"       || true
+    pw-link "chat-comp:out_r"    "chat_chain_internal_in:playback_FR"       || true
 
-    # General chain: general_chain_internal_out → eq → general_chain_internal_in
-    pw-link "general_chain_internal_out:capture_FL" "general-eq:inL"         || true
-    pw-link "general_chain_internal_out:capture_FR" "general-eq:inR"         || true
-    pw-link "general-eq:outL" "general_chain_internal_in:playback_FL"        || true
-    pw-link "general-eq:outR" "general_chain_internal_in:playback_FR"        || true
+    pw-link "general_chain_internal_out:capture_FL" "general-eq:inL"        || true
+    pw-link "general_chain_internal_out:capture_FR" "general-eq:inR"        || true
+    pw-link "general-eq:outL" "general_chain_internal_in:playback_FL"       || true
+    pw-link "general-eq:outR" "general_chain_internal_in:playback_FR"       || true
 
     echo "Audio chains linked."
 }
 
-# Start all plugins from config
+# Start all plugins
 while IFS=$'\t' read -r name uri; do
     start_plugin "$name" "$uri"
 done < <("$JQ" -r 'keys_unsorted[] as $k | "\($k)\t\(.[$k].uri)"' "$CONFIG_FILE")
 
-link_static &
-link_chains &
+# Link setup in background — monitor loop runs in foreground
+( link_static && link_chains ) &
+
+# Monitor: if any jalv process dies, exit so systemd restarts the service
+echo "Monitoring ${#JALV_PIDS[@]} plugin processes..."
+while true; do
+    for name in "${!JALV_PIDS[@]}"; do
+        if ! kill -0 "${JALV_PIDS[$name]}" 2>/dev/null; then
+            echo "Plugin '$name' (pid ${JALV_PIDS[$name]}) died — triggering service restart"
+            exit 1
+        fi
+    done
+    sleep 5
+done
