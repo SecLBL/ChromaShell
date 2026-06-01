@@ -50,9 +50,8 @@
 #
 # ── mic-nr / chat-nr (RNNoise — werman noise-suppression-for-voice) ─────────
 #
-#   Note: RNNoise uses the LV2 Patch/Atom protocol, not control ports.
-#   Parameters cannot be set via this script.
-#   Plugin defaults (VAD Threshold 0.6, Grace Period 20ms) are used automatically.
+#   These plugins run with jalv -i (non-interactive) to avoid audio artifacts.
+#   Use audio-nr-bypass.sh to toggle them in/out of the signal chain.
 #
 # ── mic-comp / chat-comp (LSP Compressor Stereo) ────────────────────────────
 #

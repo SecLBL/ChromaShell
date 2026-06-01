@@ -68,21 +68,28 @@ start_plugin() {
     local uri="$2"
     local fifo="/tmp/jalv-${name}"
 
-    [[ -p "$fifo" ]] && rm -f "$fifo"
-    mkfifo "$fifo"
-
     local params
     params="$("$JQ" -r --arg n "$name" '.[$n].params | to_entries[] | "\(.key) \(.value)"' "$CONFIG_FILE")"
 
+    # Plugins with no settable params (e.g. RNNoise) must run with -i to avoid
+    # jalv's interactive stdin loop interfering with real-time audio processing.
+    if [[ -z "$params" ]]; then
+        ${PW_JACK:+"$PW_JACK"} "$JALV" -i -n "$name" "$uri" < /dev/null &
+        JALV_PIDS["$name"]=$!
+        echo "Started jalv $name (pid ${JALV_PIDS[$name]}) — URI: $uri [non-interactive]"
+        return
+    fi
+
+    [[ -p "$fifo" ]] && rm -f "$fifo"
+    mkfifo "$fifo"
+
     (
         exec 3>"$fifo"
-        if [[ -n "$params" ]]; then
-            sleep 3
-            while IFS= read -r line; do
-                [[ -z "$line" ]] && continue
-                echo "set $line" >&3
-            done <<< "$params"
-        fi
+        sleep 3
+        while IFS= read -r line; do
+            [[ -z "$line" ]] && continue
+            echo "set $line" >&3
+        done <<< "$params"
         while true; do sleep 3600; done
     ) &
     KEEPER_PIDS["$name"]=$!
