@@ -16,8 +16,7 @@ hl.on("hyprland.start", function()
     -- Media
     hl.exec_cmd("mpris-proxy")
 
-    -- Audio
-    hl.exec_cmd("bash ~/.config/chromashell/audio/start-jalv.sh")
+    -- Audio (jalv chain managed by chromashell-jalv.service — starts with wireplumber)
     hl.exec_cmd("sleep 2 && qpwgraph -a -m")
 
     -- Shell
