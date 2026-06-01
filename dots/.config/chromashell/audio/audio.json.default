@@ -2,6 +2,7 @@
   "mic-gate": {
     "uri": "http://lsp-plug.in/plugins/lv2/gate_stereo",
     "params": {
+      "enabled": 1,
       "gt":   0.01,
       "gz":   0.59566,
       "gh":   0,
