@@ -53,6 +53,16 @@
   },
   "general-eq": {
     "uri": "http://gareus.org/oss/lv2/fil4#stereo",
-    "params": {}
+    "params": {
+      "enable": 1, "gain": 0,
+      "HighPass": 0, "HPfreq": 20, "HPQ": 0.7,
+      "LowPass": 0, "LPfreq": 20000, "LPQ": 1.0,
+      "LSsec": 1, "LSfreq": 80, "LSq": 1.0, "LSgain": 0,
+      "sec1": 1, "freq1": 160, "q1": 0.5, "gain1": 0,
+      "sec2": 1, "freq2": 397, "q2": 0.5, "gain2": 0,
+      "sec3": 1, "freq3": 1250, "q3": 0.5, "gain3": 0,
+      "sec4": 1, "freq4": 2500, "q4": 0.5, "gain4": 0,
+      "HSsec": 1, "HSfreq": 8000, "HSq": 1.0, "HSgain": 0
+    }
   }
 }
