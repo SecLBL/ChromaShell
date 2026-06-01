@@ -6,8 +6,11 @@
 #
 # Wenn die Config fehlt, wird sie aus audio.json.default angelegt.
 # Jede Instanz bekommt ein FIFO unter /tmp/jalv-<name> für live Steuerung.
+# Log: /tmp/start-jalv.log
 
 set -euo pipefail
+exec >> /tmp/start-jalv.log 2>&1
+echo "=== start-jalv.sh $(date) ==="
 
 JALV="$(command -v jalv)"
 PW_JACK="$(command -v pw-jack || true)"
@@ -72,74 +75,73 @@ start_plugin() {
     echo "Started jalv $name (pid $!) — URI: $uri"
 }
 
-link_static() {
-    # Wait for the loopback and filter-chain source nodes (max 10 s)
-    for node in mic_chain_out MixBusChat.output MixBus.output; do
-        local elapsed=0
-        until pw-link -o 2>/dev/null | grep -q "^${node}:"; do
-            sleep 0.5
-            elapsed=$((elapsed + 1))
-            if [[ $elapsed -ge 20 ]]; then
-                echo "Warning: node '${node}' did not appear within 10 s — skipping static links" >&2
-                return 1
-            fi
-        done
+wait_node_out() {
+    local node="$1" timeout="${2:-20}"
+    local elapsed=0
+    until pw-link -o 2>/dev/null | grep -q "^${node}:"; do
+        sleep 0.5
+        (( elapsed++ ))
+        if [[ $elapsed -ge $timeout ]]; then
+            echo "Warning: output node '${node}' did not appear within $(( timeout / 2 )) s"
+            return 1
+        fi
     done
+    echo "Node ready (out): $node"
+}
+
+link_static() {
+    wait_node_out "mic_chain_out"     || return 1
+    wait_node_out "MixBusChat.output" || return 1
+    wait_node_out "MixBus.output"     || return 1
 
     # mic_chain_out → VirtualCable.input  (processed mic into virtual cable for Discord etc.)
-    pw-link "mic_chain_out:capture_FL"     "VirtualCable.input:playback_FL"
-    pw-link "mic_chain_out:capture_FR"     "VirtualCable.input:playback_FR"
+    pw-link "mic_chain_out:capture_FL"     "VirtualCable.input:playback_FL" || true
+    pw-link "mic_chain_out:capture_FR"     "VirtualCable.input:playback_FR" || true
 
     # MixBusChat.output → chat_chain_in  (comm audio through chat processing chain)
-    pw-link "MixBusChat.output:capture_FL" "chat_chain_in:playback_FL"
-    pw-link "MixBusChat.output:capture_FR" "chat_chain_in:playback_FR"
+    pw-link "MixBusChat.output:capture_FL" "chat_chain_in:playback_FL" || true
+    pw-link "MixBusChat.output:capture_FR" "chat_chain_in:playback_FR" || true
 
     # MixBus.output → general_chain_in  (main audio through general processing chain)
-    pw-link "MixBus.output:capture_FL"     "general_chain_in:playback_FL"
-    pw-link "MixBus.output:capture_FR"     "general_chain_in:playback_FR"
+    pw-link "MixBus.output:capture_FL"     "general_chain_in:playback_FL" || true
+    pw-link "MixBus.output:capture_FR"     "general_chain_in:playback_FR" || true
 
     echo "Static routes linked."
 }
 
 link_chains() {
-    local nodes=(mic-gate mic-nr mic-comp chat-nr chat-comp general-eq)
-
-    # Wait for all jalv nodes to appear in PipeWire (max 15 s)
-    for node in "${nodes[@]}"; do
-        local elapsed=0
-        until pw-link -o 2>/dev/null | grep -q "^${node}:"; do
-            sleep 0.5
-            elapsed=$((elapsed + 1))
-            if [[ $elapsed -ge 30 ]]; then
-                echo "Warning: node '${node}' did not appear within 15 s — skipping link step" >&2
-                return 1
-            fi
-        done
+    # Wait for jalv plugin nodes AND filter-chain internal nodes
+    local out_nodes=(
+        mic-gate mic-nr mic-comp chat-nr chat-comp general-eq
+        mic_chain_internal_out chat_chain_internal_out general_chain_internal_out
+    )
+    for node in "${out_nodes[@]}"; do
+        wait_node_out "$node" 30 || return 1
     done
 
     # Mic chain: mic_chain_internal_out → gate → nr → comp → mic_chain_internal_in
-    pw-link "mic_chain_internal_out:capture_FL" "mic-gate:in_l"
-    pw-link "mic_chain_internal_out:capture_FR" "mic-gate:in_r"
-    pw-link "mic-gate:out_l"       "mic-nr:audio_in_1"
-    pw-link "mic-gate:out_r"       "mic-nr:audio_in_2"
-    pw-link "mic-nr:audio_out_1"   "mic-comp:in_l"
-    pw-link "mic-nr:audio_out_2"   "mic-comp:in_r"
-    pw-link "mic-comp:out_l"       "mic_chain_internal_in:playback_FL"
-    pw-link "mic-comp:out_r"       "mic_chain_internal_in:playback_FR"
+    pw-link "mic_chain_internal_out:capture_FL" "mic-gate:in_l"      || true
+    pw-link "mic_chain_internal_out:capture_FR" "mic-gate:in_r"      || true
+    pw-link "mic-gate:out_l"                    "mic-nr:audio_in_1"  || true
+    pw-link "mic-gate:out_r"                    "mic-nr:audio_in_2"  || true
+    pw-link "mic-nr:audio_out_1"                "mic-comp:in_l"      || true
+    pw-link "mic-nr:audio_out_2"                "mic-comp:in_r"      || true
+    pw-link "mic-comp:out_l"    "mic_chain_internal_in:playback_FL"  || true
+    pw-link "mic-comp:out_r"    "mic_chain_internal_in:playback_FR"  || true
 
     # Chat chain: chat_chain_internal_out → nr → comp → chat_chain_internal_in
-    pw-link "chat_chain_internal_out:capture_FL" "chat-nr:audio_in_1"
-    pw-link "chat_chain_internal_out:capture_FR" "chat-nr:audio_in_2"
-    pw-link "chat-nr:audio_out_1"  "chat-comp:in_l"
-    pw-link "chat-nr:audio_out_2"  "chat-comp:in_r"
-    pw-link "chat-comp:out_l"      "chat_chain_internal_in:playback_FL"
-    pw-link "chat-comp:out_r"      "chat_chain_internal_in:playback_FR"
+    pw-link "chat_chain_internal_out:capture_FL" "chat-nr:audio_in_1" || true
+    pw-link "chat_chain_internal_out:capture_FR" "chat-nr:audio_in_2" || true
+    pw-link "chat-nr:audio_out_1"                "chat-comp:in_l"     || true
+    pw-link "chat-nr:audio_out_2"                "chat-comp:in_r"     || true
+    pw-link "chat-comp:out_l"    "chat_chain_internal_in:playback_FL" || true
+    pw-link "chat-comp:out_r"    "chat_chain_internal_in:playback_FR" || true
 
     # General chain: general_chain_internal_out → eq → general_chain_internal_in
-    pw-link "general_chain_internal_out:capture_FL" "general-eq:inL"
-    pw-link "general_chain_internal_out:capture_FR" "general-eq:inR"
-    pw-link "general-eq:outL" "general_chain_internal_in:playback_FL"
-    pw-link "general-eq:outR" "general_chain_internal_in:playback_FR"
+    pw-link "general_chain_internal_out:capture_FL" "general-eq:inL"         || true
+    pw-link "general_chain_internal_out:capture_FR" "general-eq:inR"         || true
+    pw-link "general-eq:outL" "general_chain_internal_in:playback_FL"        || true
+    pw-link "general-eq:outR" "general_chain_internal_in:playback_FR"        || true
 
     echo "Audio chains linked."
 }
