@@ -161,13 +161,43 @@ link_chains() {
     echo "Audio chains linked."
 }
 
+link_devices() {
+    local routing="${CONFIG_DIR}/routing.json"
+    [[ -f "$routing" ]] || return 0
+
+    local general chat mic
+    general=$("$JQ" -r '.general // ""' "$routing")
+    chat=$("$JQ"    -r '.chat    // ""' "$routing")
+    mic=$("$JQ"     -r '.mic     // ""' "$routing")
+
+    local script
+    script="$(dirname "$(readlink -f "$0")")/audio-route.sh"
+
+    if [[ -n "$general" ]]; then
+        wait_node_out "general_chain_out" 10 \
+            && bash "$script" general "$general" "" \
+            || echo "Warning: could not restore general routing to '$general'"
+    fi
+    if [[ -n "$chat" ]]; then
+        wait_node_out "chat_chain_out" 10 \
+            && bash "$script" chat "$chat" "" \
+            || echo "Warning: could not restore chat routing to '$chat'"
+    fi
+    if [[ -n "$mic" ]]; then
+        pw-link -i 2>/dev/null | grep -q "^mic_chain_in:" \
+            && bash "$script" mic "$mic" "" \
+            || echo "Warning: could not restore mic routing to '$mic'"
+    fi
+    echo "Device routing restored from $routing"
+}
+
 # Start all plugins
 while IFS=$'\t' read -r name uri; do
     start_plugin "$name" "$uri"
 done < <("$JQ" -r 'keys_unsorted[] as $k | "\($k)\t\(.[$k].uri)"' "$CONFIG_FILE")
 
 # Link setup in background — monitor loop runs in foreground
-( link_static && link_chains ) &
+( link_static && link_chains && link_devices ) &
 
 # Monitor: if any jalv process dies, exit so systemd restarts the service
 echo "Monitoring ${#JALV_PIDS[@]} plugin processes..."

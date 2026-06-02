@@ -13,6 +13,7 @@ DEVICE="$2"
 OLD="${3:-}"
 
 disc() { pw-link -d "$1" "$2" 2>/dev/null || true; }
+conn() { pw-link    "$1" "$2" 2>/dev/null || true; }
 
 case "$BUS" in
     general)
@@ -20,24 +21,24 @@ case "$BUS" in
             disc "general_chain_out:capture_FL" "${OLD}:playback_FL"
             disc "general_chain_out:capture_FR" "${OLD}:playback_FR"
         fi
-        pw-link "general_chain_out:capture_FL" "${DEVICE}:playback_FL"
-        pw-link "general_chain_out:capture_FR" "${DEVICE}:playback_FR"
+        conn "general_chain_out:capture_FL" "${DEVICE}:playback_FL"
+        conn "general_chain_out:capture_FR" "${DEVICE}:playback_FR"
         ;;
     chat)
         if [[ -n "$OLD" ]]; then
             disc "chat_chain_out:capture_FL" "${OLD}:playback_FL"
             disc "chat_chain_out:capture_FR" "${OLD}:playback_FR"
         fi
-        pw-link "chat_chain_out:capture_FL" "${DEVICE}:playback_FL"
-        pw-link "chat_chain_out:capture_FR" "${DEVICE}:playback_FR"
+        conn "chat_chain_out:capture_FL" "${DEVICE}:playback_FL"
+        conn "chat_chain_out:capture_FR" "${DEVICE}:playback_FR"
         ;;
     mic)
         if [[ -n "$OLD" ]]; then
             disc "${OLD}:capture_FL" "mic_chain_in:playback_FL"
             disc "${OLD}:capture_FR" "mic_chain_in:playback_FR"
         fi
-        pw-link "${DEVICE}:capture_FL" "mic_chain_in:playback_FL"
-        pw-link "${DEVICE}:capture_FR" "mic_chain_in:playback_FR"
+        conn "${DEVICE}:capture_FL" "mic_chain_in:playback_FL"
+        conn "${DEVICE}:capture_FR" "mic_chain_in:playback_FR"
         ;;
     *)
         echo "audio-route.sh: unknown bus '${BUS}' (expected: general|chat|mic)" >&2
