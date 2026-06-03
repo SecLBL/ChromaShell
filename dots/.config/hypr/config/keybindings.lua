@@ -15,13 +15,13 @@ hl.define_submap("global", "global", function()
     hl.bind(M .. " + mouse_down",            hl.dsp.global("caelestia:launcherInterrupt"),  { non_consuming=true })
 
     -- ── Caelestia shell ───────────────────────────────────────────────────────
-    hl.bind("CTRL + ALT + Delete",           hl.dsp.global("caelestia:session"))
-    hl.bind(M .. " + N",                     hl.dsp.global("caelestia:sidebar"))
-    hl.bind("CTRL + ALT + C",               hl.dsp.global("caelestia:clearNotifs"),         { locked=true })
-    hl.bind(M .. " + K",                     hl.dsp.global("caelestia:showall"))
-    hl.bind(M .. " + L",                     hl.dsp.global("caelestia:lock"))
-    hl.bind(M .. " + ALT + L",              hl.dsp.exec_cmd("caelestia shell -d"),           { locked=true })
-    hl.bind(M .. " + ALT + L",              hl.dsp.global("caelestia:lock"),                 { locked=true })
+    hl.bind(v.kbSession,                     hl.dsp.global("caelestia:session"))
+    hl.bind(v.kbShowSidebar,                 hl.dsp.global("caelestia:sidebar"))
+    hl.bind(v.kbClearNotifs,                 hl.dsp.global("caelestia:clearNotifs"),         { locked=true })
+    hl.bind(v.kbShowPanels,                  hl.dsp.global("caelestia:showall"))
+    hl.bind(v.kbLock,                        hl.dsp.global("caelestia:lock"))
+    hl.bind(v.kbRestoreLock,                 hl.dsp.exec_cmd("caelestia shell -d"),           { locked=true })
+    hl.bind(v.kbRestoreLock,                 hl.dsp.global("caelestia:lock"),                 { locked=true })
 
     -- Kill / restart caelestia shell
     hl.bind("CTRL + SUPER + SHIFT + R",     hl.dsp.exec_cmd("qs -c caelestia kill"),         { release=true })
@@ -43,17 +43,17 @@ hl.define_submap("global", "global", function()
 
     -- ── Workspaces — navigate ─────────────────────────────────────────────────
     for i = 1, 9 do
-        hl.bind(M .. " + " .. i,              hl.dsp.exec_cmd(wsaction .. " workspace " .. i))
-        hl.bind("CTRL + SUPER + " .. i,       hl.dsp.exec_cmd(wsaction .. " -g workspace " .. i))
+        hl.bind(v.kbGoToWs .. " + " .. i,       hl.dsp.exec_cmd(wsaction .. " workspace " .. i))
+        hl.bind(v.kbGoToWsGroup .. " + " .. i,  hl.dsp.exec_cmd(wsaction .. " -g workspace " .. i))
     end
-    hl.bind(M .. " + 0",                      hl.dsp.exec_cmd(wsaction .. " workspace 10"))
-    hl.bind("CTRL + SUPER + 0",              hl.dsp.exec_cmd(wsaction .. " -g workspace 10"))
+    hl.bind(v.kbGoToWs .. " + 0",               hl.dsp.exec_cmd(wsaction .. " workspace 10"))
+    hl.bind(v.kbGoToWsGroup .. " + 0",          hl.dsp.exec_cmd(wsaction .. " -g workspace 10"))
 
     -- Workspace +/-1
     hl.bind(M .. " + mouse_down",             hl.dsp.focus({ workspace="-1" }))
     hl.bind(M .. " + mouse_up",               hl.dsp.focus({ workspace="+1" }))
-    hl.bind("CTRL + SUPER + right",           hl.dsp.focus({ workspace="+1" }),              { repeating=true })
-    hl.bind("CTRL + SUPER + left",            hl.dsp.focus({ workspace="-1" }),              { repeating=true })
+    hl.bind(v.kbNextWs,                        hl.dsp.focus({ workspace="+1" }),              { repeating=true })
+    hl.bind(v.kbPrevWs,                        hl.dsp.focus({ workspace="-1" }),              { repeating=true })
     hl.bind(M .. " + Page_Down",              hl.dsp.focus({ workspace="+1" }),              { repeating=true })
     hl.bind(M .. " + Page_Up",                hl.dsp.focus({ workspace="-1" }),              { repeating=true })
 
@@ -62,15 +62,15 @@ hl.define_submap("global", "global", function()
     hl.bind("CTRL + SUPER + mouse_up",        hl.dsp.focus({ workspace="+10" }))
 
     -- Special workspace
-    hl.bind(M .. " + S",                      hl.dsp.exec_cmd("caelestia toggle specialws"))
+    hl.bind(v.kbToggleSpecialWs,               hl.dsp.exec_cmd("caelestia toggle specialws"))
 
     -- ── Workspaces — move window ──────────────────────────────────────────────
     for i = 1, 9 do
-        hl.bind(M .. " + ALT + " .. i,             hl.dsp.exec_cmd(wsaction .. " movetoworkspace " .. i))
-        hl.bind("CTRL + SUPER + ALT + " .. i,      hl.dsp.exec_cmd(wsaction .. " -g movetoworkspace " .. i))
+        hl.bind(v.kbMoveWinToWs .. " + " .. i,       hl.dsp.exec_cmd(wsaction .. " movetoworkspace " .. i))
+        hl.bind(v.kbMoveWinToWsGroup .. " + " .. i,  hl.dsp.exec_cmd(wsaction .. " -g movetoworkspace " .. i))
     end
-    hl.bind(M .. " + ALT + 0",               hl.dsp.exec_cmd(wsaction .. " movetoworkspace 10"))
-    hl.bind("CTRL + SUPER + ALT + 0",        hl.dsp.exec_cmd(wsaction .. " -g movetoworkspace 10"))
+    hl.bind(v.kbMoveWinToWs .. " + 0",        hl.dsp.exec_cmd(wsaction .. " movetoworkspace 10"))
+    hl.bind(v.kbMoveWinToWsGroup .. " + 0",   hl.dsp.exec_cmd(wsaction .. " -g movetoworkspace 10"))
 
     -- Move window +/-1
     hl.bind(M .. " + ALT + Page_Up",          hl.dsp.window.move({ workspace="-1" }),         { repeating=true })
@@ -86,12 +86,12 @@ hl.define_submap("global", "global", function()
     hl.bind(M .. " + ALT + S",               hl.dsp.window.move({ workspace="special:special" }))
 
     -- ── Window groups ─────────────────────────────────────────────────────────
-    hl.bind("ALT + Tab",                      hl.dsp.window.cycle_next(),                     { repeating=true })
-    hl.bind("SHIFT + ALT + Tab",              hl.dsp.window.cycle_next("prev"),               { repeating=true })
+    hl.bind(v.kbWindowGroupCycleNext,          hl.dsp.window.cycle_next(),                     { repeating=true })
+    hl.bind(v.kbWindowGroupCyclePrev,          hl.dsp.window.cycle_next("prev"),               { repeating=true })
     hl.bind("CTRL + ALT + Tab",              hl.dsp.group.next(),                             { repeating=true })
     hl.bind("CTRL + SHIFT + ALT + Tab",      hl.dsp.group.prev(),                             { repeating=true })
-    hl.bind(M .. " + Comma",                  hl.dsp.group.toggle())
-    hl.bind(M .. " + U",                      hl.dsp.group.move_window())
+    hl.bind(v.kbToggleGroup,                   hl.dsp.group.toggle())
+    hl.bind(v.kbUngroup,                       hl.dsp.group.move_window())
     hl.bind(M .. " + SHIFT + Comma",          hl.dsp.group.lock_active("toggle"))
 
     -- ── Window — focus ────────────────────────────────────────────────────────
@@ -118,9 +118,9 @@ hl.define_submap("global", "global", function()
 
     -- ── Window — mouse drag / resize ──────────────────────────────────────────
     hl.bind(M .. " + mouse:272",              hl.dsp.window.drag(),                           { mouse=true })
-    hl.bind(M .. " + Z",                      hl.dsp.window.drag(),                           { mouse=true })
+    hl.bind(v.kbMoveWindow,                    hl.dsp.window.drag(),                           { mouse=true })
     hl.bind(M .. " + mouse:273",              hl.dsp.window.resize(),                         { mouse=true })
-    hl.bind(M .. " + X",                      hl.dsp.window.resize(),                         { mouse=true })
+    hl.bind(v.kbResizeWindow,                  hl.dsp.window.resize(),                         { mouse=true })
 
     -- ── Window — actions ──────────────────────────────────────────────────────
     hl.bind("CTRL + SUPER + LESS",       hl.dsp.window.center(1))
@@ -131,27 +131,27 @@ hl.define_submap("global", "global", function()
             hl.dispatch(hl.dsp.window.center(1))
         end
     end)
-    hl.bind(M .. " + ALT + LESS",        hl.dsp.exec_cmd("caelestia resizer pip"))
-    hl.bind(M .. " + P",                      hl.dsp.window.pin())
-    hl.bind(M .. " + F",                      hl.dsp.window.fullscreen(0))
-    hl.bind(M .. " + ALT + F",               hl.dsp.window.fullscreen(1))
-    hl.bind(M .. " + ALT + Space",            hl.dsp.window.float({ action="toggle" }))
-    hl.bind(M .. " + Q",                      hl.dsp.window.close())
+    hl.bind(v.kbWindowPip,                     hl.dsp.exec_cmd("caelestia resizer pip"))
+    hl.bind(v.kbPinWindow,                     hl.dsp.window.pin())
+    hl.bind(v.kbWindowFullscreen,              hl.dsp.window.fullscreen(0))
+    hl.bind(v.kbWindowBorderedFullscreen,      hl.dsp.window.fullscreen(1))
+    hl.bind(v.kbToggleWindowFloating,          hl.dsp.window.float({ action="toggle" }))
+    hl.bind(v.kbCloseWindow,                   hl.dsp.window.close())
 
     -- ── Special workspace toggles ─────────────────────────────────────────────
-    hl.bind("CTRL + SHIFT + Escape",          hl.dsp.exec_cmd("caelestia toggle sysmon"))
-    hl.bind(M .. " + M",                      hl.dsp.exec_cmd("caelestia toggle music"))
-    hl.bind(M .. " + D",                      hl.dsp.exec_cmd("caelestia toggle communication"))
-    hl.bind(M .. " + R",                      hl.dsp.exec_cmd("caelestia toggle todo"))
+    hl.bind(v.kbSystemMonitor,                 hl.dsp.exec_cmd("caelestia toggle sysmon"))
+    hl.bind(v.kbMusic,                         hl.dsp.exec_cmd("caelestia toggle music"))
+    hl.bind(v.kbCommunication,                 hl.dsp.exec_cmd("caelestia toggle communication"))
+    hl.bind(v.kbTodo,                          hl.dsp.exec_cmd("caelestia toggle todo"))
 
     -- ── Apps ──────────────────────────────────────────────────────────────────
-    hl.bind(M .. " + Return",                 hl.dsp.exec_cmd(v.terminal))
-    hl.bind(M .. " + T",                      hl.dsp.exec_cmd(v.terminal))
-    hl.bind(M .. " + W",                      hl.dsp.exec_cmd(v.browser))
-    hl.bind(M .. " + C",                      hl.dsp.exec_cmd(v.editor))
-    hl.bind(M .. " + E",                      hl.dsp.exec_cmd(v.fileManager))
-    hl.bind("CTRL + ALT + Escape",            hl.dsp.exec_cmd("qps"))
-    hl.bind("CTRL + ALT + V",                hl.dsp.exec_cmd("pavucontrol"))
+    hl.bind(M .. " + Return",                 hl.dsp.exec_cmd("app2unit -- " .. v.terminal))
+    hl.bind(v.kbTerminal,                      hl.dsp.exec_cmd("app2unit -- " .. v.terminal))
+    hl.bind(v.kbBrowser,                       hl.dsp.exec_cmd("app2unit -- " .. v.browser))
+    hl.bind(v.kbEditor,                        hl.dsp.exec_cmd("app2unit -- " .. v.editor))
+    hl.bind(v.kbFileExplorer,                  hl.dsp.exec_cmd("app2unit -- " .. v.fileManager))
+    hl.bind("CTRL + ALT + Escape",            hl.dsp.exec_cmd("app2unit -- qps"))
+    hl.bind("CTRL + ALT + V",                hl.dsp.exec_cmd("app2unit -- pavucontrol"))
 
     -- ── Screenshot ────────────────────────────────────────────────────────────
     hl.bind("Print",                           hl.dsp.global("caelestia:screenshot"),         { locked=true })
@@ -166,8 +166,8 @@ hl.define_submap("global", "global", function()
     hl.bind("XF86AudioMicMute",               hl.dsp.exec_cmd("wpctl set-mute @DEFAULT_AUDIO_SOURCE@ toggle"),                                      { locked=true })
     hl.bind("XF86AudioMute",                  hl.dsp.exec_cmd("wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle"),                                        { locked=true })
     hl.bind(M .. " + SHIFT + M",              hl.dsp.exec_cmd("wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle"),                                        { locked=true })
-    hl.bind("XF86AudioRaiseVolume",           hl.dsp.exec_cmd("wpctl set-mute @DEFAULT_AUDIO_SINK@ 0; wpctl set-volume -l 1 @DEFAULT_AUDIO_SINK@ 10%+"), { locked=true, repeating=true })
-    hl.bind("XF86AudioLowerVolume",           hl.dsp.exec_cmd("wpctl set-mute @DEFAULT_AUDIO_SINK@ 0; wpctl set-volume @DEFAULT_AUDIO_SINK@ 10%-"),       { locked=true, repeating=true })
+    hl.bind("XF86AudioRaiseVolume",           hl.dsp.exec_cmd("wpctl set-mute @DEFAULT_AUDIO_SINK@ 0; wpctl set-volume -l 1 @DEFAULT_AUDIO_SINK@ " .. v.volumeStep .. "%+"), { locked=true, repeating=true })
+    hl.bind("XF86AudioLowerVolume",           hl.dsp.exec_cmd("wpctl set-mute @DEFAULT_AUDIO_SINK@ 0; wpctl set-volume @DEFAULT_AUDIO_SINK@ " .. v.volumeStep .. "%-"),       { locked=true, repeating=true })
 
     -- ── Sleep ─────────────────────────────────────────────────────────────────
     hl.bind(M .. " + SHIFT + L",              hl.dsp.exec_cmd("systemctl suspend-then-hibernate"), { locked=true })

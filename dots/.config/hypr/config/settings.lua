@@ -1,7 +1,29 @@
-local ok, colors = pcall(require, "colors")
+-- Load colour scheme (written by caelestia-cli on every theme change)
+local ok, sc = pcall(require, "scheme.current")
 if not ok then
-    colors = { active_border="rgba(0DB7D4FF)", inactive_border="rgba(31313600)" }
+    -- Fallback: default scheme hex values (matches scheme/default.conf)
+    sc = {
+        primary          = "c2c1ff",
+        surface          = "131317",
+        surfaceContainer = "201f23",
+        onPrimary        = "2a2a60",
+        onSurfaceVariant = "c8c5d1",
+        outlineVariant   = "47464f",
+        secondary        = "c6c4e0",
+    }
 end
+
+-- Pre-compute colour strings (mirrors upstream variables.conf pattern)
+local active_border   = "rgba(" .. sc.primary          .. "e6)"
+local inactive_border = "rgba(" .. sc.onSurfaceVariant .. "11)"
+local bg_color        = "rgb("  .. sc.surfaceContainer .. ")"
+local shadow_color    = "rgba(" .. sc.surface          .. "d4)"
+local gb_text         = "rgb("  .. sc.onPrimary        .. ")"
+local gb_active       = "rgba(" .. sc.primary          .. "d4)"
+local gb_inactive     = "rgba(" .. sc.outlineVariant   .. "04)"
+local gb_locked       = "rgba(" .. sc.secondary        .. "d4)"
+
+local v = require("config.variables")
 
 -- Fallback monitor rule (all unmatched outputs)
 hl.monitor({ output="", mode="preferred", position="auto", scale=1 })
@@ -25,8 +47,8 @@ hl.animation({ leaf="fadeDim",           enabled=true, speed=6, bezier="standard
 hl.animation({ leaf="border",            enabled=true, speed=6, bezier="standard" })
 
 -- ── Gestures ─────────────────────────────────────────────────────────────────
-hl.gesture({ fingers=4, direction="horizontal", action="workspace" })
-hl.gesture({ fingers=3, direction="up",         action="special",   workspace_name="special" })
+hl.gesture({ fingers=v.workspaceSwipeFingers, direction="horizontal", action="workspace" })
+hl.gesture({ fingers=v.gestureFingers,        direction="up",         action="special",   workspace_name="special" })
 -- 3-finger down (caelestia toggle specialws) and 4-finger down (suspend) require
 -- arbitrary dispatcher calls which hl.gesture does not support in Hyprland 0.55.
 
@@ -42,13 +64,13 @@ hl.config({
 
 -- ── General ───────────────────────────────────────────────────────────────────
     general = {
-        gaps_in          = 2,
-        gaps_out         = 10,
-        gaps_workspaces  = 50,
-        border_size      = 2,
+        gaps_in          = v.windowGapsIn,
+        gaps_out         = v.windowGapsOut,
+        gaps_workspaces  = v.workspaceGaps,
+        border_size      = v.windowBorderSize,
         col = {
-            active_border   = colors.active_border,
-            inactive_border = colors.inactive_border,
+            active_border   = active_border,
+            inactive_border = inactive_border,
         },
         resize_on_border  = true,
         no_focus_fallback = true,
@@ -63,7 +85,7 @@ hl.config({
 
 -- ── Decoration ────────────────────────────────────────────────────────────────
     decoration = {
-        rounding         = 12,
+        rounding         = v.windowRounding,
         active_opacity   = 1.0,
         inactive_opacity = 0.95,
         dim_inactive     = true,
@@ -71,50 +93,57 @@ hl.config({
         dim_special      = 0.2,
 
         blur = {
-            enabled                   = true,
-            xray                      = true,
-            special                   = false,
+            enabled                   = v.blurEnabled,
+            xray                      = v.blurXray,
+            special                   = v.blurSpecialWs,
             new_optimizations         = true,
-            size                      = 6,
-            passes                    = 2,
+            size                      = v.blurSize,
+            passes                    = v.blurPasses,
             brightness                = 1.5,
             noise                     = 0,
             contrast                  = 0.89,
             vibrancy                  = 0.3,
             vibrancy_darkness         = 0.3,
-            popups                    = false,
+            popups                    = v.blurPopups,
             popups_ignorealpha        = 0.6,
-            input_methods             = true,
+            input_methods             = v.blurInputMethods,
             input_methods_ignorealpha = 0.8,
         },
 
         shadow = {
-            enabled      = true,
-            range        = 30,
+            enabled      = v.shadowEnabled,
+            range        = v.shadowRange,
             offset       = "0 2",
-            render_power = 4,
-            color        = "rgba(00000010)",
+            render_power = v.shadowRenderPower,
+            color        = shadow_color,
         },
     },
 
 -- ── Group / Groupbar ──────────────────────────────────────────────────────────
     group = {
         col = {
-            border_active          = colors.active_border,
-            border_inactive        = colors.inactive_border,
-            border_locked_active   = colors.active_border,
-            border_locked_inactive = colors.inactive_border,
+            border_active          = active_border,
+            border_inactive        = inactive_border,
+            border_locked_active   = active_border,
+            border_locked_inactive = inactive_border,
         },
         groupbar = {
-            font_family              = "JetBrains Mono NF",
-            font_size                = 15,
-            gradients                = true,
+            font_family               = "JetBrains Mono NF",
+            font_size                 = 15,
+            gradients                 = true,
             gradient_round_only_edges = false,
-            gradient_rounding        = 5,
-            height                   = 25,
-            indicator_height         = 0,
-            gaps_in                  = 3,
-            gaps_out                 = 3,
+            gradient_rounding         = 5,
+            height                    = 25,
+            indicator_height          = 0,
+            gaps_in                   = 3,
+            gaps_out                  = 3,
+            text_color                = gb_text,
+            col = {
+                active        = gb_active,
+                inactive      = gb_inactive,
+                locked_active = gb_active,
+                locked_inactive = gb_locked,
+            },
         },
     },
 
@@ -136,9 +165,9 @@ hl.config({
         off_window_axis_events = 2,
         touchpad = {
             natural_scroll       = true,
-            disable_while_typing = true,
+            disable_while_typing = v.touchpadDisableTyping,
             clickfinger_behavior = true,
-            scroll_factor        = 0.7,
+            scroll_factor        = v.touchpadScrollFactor,
         },
     },
 
@@ -173,6 +202,7 @@ hl.config({
         focus_on_activate            = true,
         enable_swallow               = false,
         initial_workspace_tracking   = false,
+        background_color             = bg_color,
     },
 
 -- ── Debug ─────────────────────────────────────────────────────────────────────

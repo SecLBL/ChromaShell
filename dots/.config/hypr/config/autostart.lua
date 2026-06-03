@@ -1,3 +1,5 @@
+local _v = require("config.variables")
+
 hl.on("hyprland.start", function()
     hl.dispatch(hl.dsp.submap("global"))
 
@@ -5,6 +7,9 @@ hl.on("hyprland.start", function()
     hl.exec_cmd("gnome-keyring-daemon --start --components=secrets")
     hl.exec_cmd("polkit-gnome-authentication-agent-1")
     hl.exec_cmd("hypridle")
+    hl.exec_cmd("trash-empty 30")
+    hl.exec_cmd("/usr/lib/geoclue-2.0/demos/agent")
+    hl.exec_cmd("sleep 1 && gammastep")
     hl.exec_cmd("dbus-update-activation-environment --all")
     hl.exec_cmd("sleep 1 && dbus-update-activation-environment --systemd WAYLAND_DISPLAY XDG_CURRENT_DESKTOP")
 
@@ -21,7 +26,7 @@ hl.on("hyprland.start", function()
     hl.exec_cmd("caelestia resizer -d")
 
     -- Cursor
-    hl.exec_cmd("hyprctl setcursor Bibata-Modern-Classic 18")
-    hl.exec_cmd('gsettings set org.gnome.desktop.interface cursor-theme "Bibata-Modern-Classic"')
-    hl.exec_cmd("gsettings set org.gnome.desktop.interface cursor-size 18")
+    hl.exec_cmd("hyprctl setcursor " .. _v.cursorTheme .. " " .. _v.cursorSize)
+    hl.exec_cmd('gsettings set org.gnome.desktop.interface cursor-theme "' .. _v.cursorTheme .. '"')
+    hl.exec_cmd("gsettings set org.gnome.desktop.interface cursor-size " .. _v.cursorSize)
 end)

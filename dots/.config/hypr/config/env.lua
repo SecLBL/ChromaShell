@@ -14,8 +14,9 @@ hl.env("XDG_SESSION_TYPE",                   "wayland")
 hl.env("XDG_SESSION_DESKTOP",               "Hyprland")
 
 -- Cursor
-hl.env("XCURSOR_THEME",                      "Bibata-Modern-Classic")
-hl.env("XCURSOR_SIZE",                       "18")
+local _v = require("config.variables")
+hl.env("XCURSOR_THEME", _v.cursorTheme)
+hl.env("XCURSOR_SIZE",  tostring(_v.cursorSize))
 
 -- Misc
 hl.env("NIXOS_OZONE_WL",                     "1")

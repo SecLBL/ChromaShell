@@ -1,5 +1,8 @@
+local v = require("config.variables")
+local _op = string.format("%g", v.windowOpacity)
+
 -- ── Opacity ───────────────────────────────────────────────────────────────────
-hl.window_rule({ match={ class=".*" }, opacity="0.8 override 0.8 override" })
+hl.window_rule({ match={ class=".*" }, opacity=_op .. " override " .. _op .. " override" })
 
 -- Full opacity for native-transparent or always-opaque apps
 hl.window_rule({ match={ class="foot|equibop|org%.quickshell|imv|swappy" }, opacity="1.0 override", no_blur=true })
@@ -27,6 +30,8 @@ hl.window_rule({ match={ float=true, xwayland=false }, center=true })
 hl.window_rule({ match={ class="yad|zenity|wev|feh|imv" },                   float=true })
 hl.window_rule({ match={ class="org%.gnome%.FileRoller|file-roller" },        float=true })
 hl.window_rule({ match={ class="blueman-manager" },                            float=true })
+hl.window_rule({ match={ class="com%.github%.GradienceTeam%.Gradience" },    float=true })
+hl.window_rule({ match={ class="system-config-printer" },                     float=true })
 hl.window_rule({ match={ class="org%.quickshell" },                           float=true })
 hl.window_rule({ match={ class="ueberzugpp_.*" },                             float=true, no_initial_focus=true })
 
@@ -73,6 +78,9 @@ hl.window_rule({ match={ class="Todoist" },                                     
 hl.layer_rule({ match={ namespace="hyprpicker" },                      animation="fade" })
 hl.layer_rule({ match={ namespace="selection" },                       animation="fade" })
 hl.layer_rule({ match={ namespace="wayfreeze" },                       animation="fade" })
+hl.layer_rule({ match={ namespace="logout_dialog" },                   animation="fade" })
 hl.layer_rule({ match={ namespace="caelestia-(border-exclusion|area-picker)" }, no_anim=true })
 hl.layer_rule({ match={ namespace="caelestia-(drawers|background)" },  animation="fade" })
 hl.layer_rule({ match={ namespace="chromashell-frame" },               blur=true, ignore_alpha=0 })
+hl.layer_rule({ match={ namespace="launcher" },                        animation="popin 80%" })
+hl.layer_rule({ match={ namespace="launcher" },                        blur=true })
