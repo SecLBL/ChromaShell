@@ -5,7 +5,7 @@ local _op = string.format("%g", v.windowOpacity)
 hl.window_rule({ match={ class=".*" }, opacity=_op .. " override " .. _op .. " override" })
 
 -- Full opacity for native-transparent or always-opaque apps
-hl.window_rule({ match={ class="foot|equibop|org%.quickshell|imv|swappy" }, opacity="1.0 override", no_blur=true })
+hl.window_rule({ match={ class="foot|org%.quickshell|imv|swappy" }, opacity="1.0 override", no_blur=true })
 
 -- Full opacity + no blur for video playback
 hl.window_rule({
