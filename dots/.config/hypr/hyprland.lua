@@ -2,8 +2,9 @@
 --  ChromaShell — Hyprland Entry Point
 -- ══════════════════════════════════════════
 
--- Pre-load colour scheme into module cache so settings.lua can require("scheme.current")
-pcall(require, "scheme.current")
+-- Pre-load colour scheme into module cache (default shipped in dotfiles,
+-- overwritten by caelestia-cli on every theme change)
+require("scheme.current")
 
 -- variables
 require("config.variables")         -- upstream

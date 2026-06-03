@@ -1,17 +1,5 @@
--- Load colour scheme (written by caelestia-cli on every theme change)
-local ok, sc = pcall(require, "scheme.current")
-if not ok then
-    -- Fallback: default scheme hex values (matches scheme/default.conf)
-    sc = {
-        primary          = "c2c1ff",
-        surface          = "131317",
-        surfaceContainer = "201f23",
-        onPrimary        = "2a2a60",
-        onSurfaceVariant = "c8c5d1",
-        outlineVariant   = "47464f",
-        secondary        = "c6c4e0",
-    }
-end
+-- Load colour scheme (default shipped in dotfiles, overwritten by caelestia-cli on theme change)
+local sc = require("scheme.current")
 
 -- Pre-compute colour strings (mirrors upstream variables.conf pattern)
 local active_border   = "rgba(" .. sc.primary          .. "e6)"
