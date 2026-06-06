@@ -18,34 +18,34 @@ case "$PLUGIN" in
         if [[ "$ENABLE" == "1" ]]; then
             disc "mic-gate:out_l" "mic-comp:in_l"
             disc "mic-gate:out_r" "mic-comp:in_r"
-            pw-link "mic-gate:out_l"      "mic-nr:audio_in_1"
-            pw-link "mic-gate:out_r"      "mic-nr:audio_in_2"
-            pw-link "mic-nr:audio_out_1"  "mic-comp:in_l"
-            pw-link "mic-nr:audio_out_2"  "mic-comp:in_r"
+            pw-link "mic-gate:out_l"      "mic-nr:audio_in_1" || true
+            pw-link "mic-gate:out_r"      "mic-nr:audio_in_2" || true
+            pw-link "mic-nr:audio_out_1"  "mic-comp:in_l"     || true
+            pw-link "mic-nr:audio_out_2"  "mic-comp:in_r"     || true
         else
             disc "mic-gate:out_l"     "mic-nr:audio_in_1"
             disc "mic-gate:out_r"     "mic-nr:audio_in_2"
             disc "mic-nr:audio_out_1" "mic-comp:in_l"
             disc "mic-nr:audio_out_2" "mic-comp:in_r"
-            pw-link "mic-gate:out_l" "mic-comp:in_l"
-            pw-link "mic-gate:out_r" "mic-comp:in_r"
+            pw-link "mic-gate:out_l" "mic-comp:in_l" || true
+            pw-link "mic-gate:out_r" "mic-comp:in_r" || true
         fi
         ;;
     chat-nr)
         if [[ "$ENABLE" == "1" ]]; then
             disc "chat_chain_internal_out:capture_FL" "chat-comp:in_l"
             disc "chat_chain_internal_out:capture_FR" "chat-comp:in_r"
-            pw-link "chat_chain_internal_out:capture_FL" "chat-nr:audio_in_1"
-            pw-link "chat_chain_internal_out:capture_FR" "chat-nr:audio_in_2"
-            pw-link "chat-nr:audio_out_1"               "chat-comp:in_l"
-            pw-link "chat-nr:audio_out_2"               "chat-comp:in_r"
+            pw-link "chat_chain_internal_out:capture_FL" "chat-nr:audio_in_1" || true
+            pw-link "chat_chain_internal_out:capture_FR" "chat-nr:audio_in_2" || true
+            pw-link "chat-nr:audio_out_1"               "chat-comp:in_l"      || true
+            pw-link "chat-nr:audio_out_2"               "chat-comp:in_r"      || true
         else
             disc "chat_chain_internal_out:capture_FL" "chat-nr:audio_in_1"
             disc "chat_chain_internal_out:capture_FR" "chat-nr:audio_in_2"
             disc "chat-nr:audio_out_1"                "chat-comp:in_l"
             disc "chat-nr:audio_out_2"                "chat-comp:in_r"
-            pw-link "chat_chain_internal_out:capture_FL" "chat-comp:in_l"
-            pw-link "chat_chain_internal_out:capture_FR" "chat-comp:in_r"
+            pw-link "chat_chain_internal_out:capture_FL" "chat-comp:in_l" || true
+            pw-link "chat_chain_internal_out:capture_FR" "chat-comp:in_r" || true
         fi
         ;;
     *)
