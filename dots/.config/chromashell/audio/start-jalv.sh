@@ -189,6 +189,21 @@ link_devices() {
             || echo "Warning: could not restore mic routing to '$mic'"
     fi
     echo "Device routing restored from $routing"
+
+    local mic_nr chat_nr
+    mic_nr=$("$JQ" -r '.mic_nr // 1' "$routing")
+    chat_nr=$("$JQ" -r '.chat_nr // 1' "$routing")
+    local bypass_script
+    bypass_script="$(dirname "$(readlink -f "$0")")/audio-nr-bypass.sh"
+
+    if [[ "$mic_nr" == "0" ]]; then
+        bash "$bypass_script" mic-nr 0 \
+            || echo "Warning: could not restore mic NR bypass"
+    fi
+    if [[ "$chat_nr" == "0" ]]; then
+        bash "$bypass_script" chat-nr 0 \
+            || echo "Warning: could not restore chat NR bypass"
+    fi
 }
 
 # Start all plugins

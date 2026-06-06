@@ -53,3 +53,15 @@ case "$PLUGIN" in
         exit 1
         ;;
 esac
+
+ROUTING_FILE="${XDG_CONFIG_HOME:-$HOME/.config}/chromashell/audio/runtime/routing.json"
+mkdir -p "$(dirname "$ROUTING_FILE")"
+existing=$(cat "$ROUTING_FILE" 2>/dev/null || echo '{}')
+case "$PLUGIN" in
+    mic-nr)  NR_KEY="mic_nr" ;;
+    chat-nr) NR_KEY="chat_nr" ;;
+esac
+printf '%s' "$existing" \
+    | jq --arg k "$NR_KEY" --arg v "$ENABLE" '.[$k] = ($v | tonumber)' \
+    > "${ROUTING_FILE}.tmp" \
+    && mv "${ROUTING_FILE}.tmp" "$ROUTING_FILE"
