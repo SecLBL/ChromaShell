@@ -16,10 +16,6 @@ STATE = (
     pathlib.Path(os.environ.get("XDG_STATE_HOME") or (os.path.expanduser("~") + "/.local/state"))
     / "caelestia/scheme.json"
 )
-XPI = (
-    pathlib.Path(os.environ.get("XDG_DATA_HOME") or (os.path.expanduser("~") + "/.local/share"))
-    / "chromafox/chromafox@chromashell.xpi"
-)
 
 _clients: list[queue.Queue] = []
 _lock = threading.Lock()
@@ -51,14 +47,8 @@ class Handler(http.server.BaseHTTPRequestHandler):
     def do_GET(self) -> None:
         if self.path == "/events":
             self._sse()
-        elif self.path == "/chromafox.xpi":
-            self._xpi(head=False)
         else:
             self._json()
-
-    def do_HEAD(self) -> None:
-        if self.path == "/chromafox.xpi":
-            self._xpi(head=True)
 
     def _json(self) -> None:
         try:
@@ -73,21 +63,6 @@ class Handler(http.server.BaseHTTPRequestHandler):
         self.send_header("Connection", "close")
         self.end_headers()
         self.wfile.write(data)
-
-    def _xpi(self, head: bool = False) -> None:
-        try:
-            data = XPI.read_bytes()
-        except OSError:
-            self.send_response(404)
-            self.end_headers()
-            return
-        self.send_response(200)
-        self.send_header("Content-Type", "application/x-xpinstall")
-        self.send_header("Content-Length", str(len(data)))
-        self.send_header("Connection", "close")
-        self.end_headers()
-        if not head:
-            self.wfile.write(data)
 
     def _sse(self) -> None:
         self.send_response(200)
