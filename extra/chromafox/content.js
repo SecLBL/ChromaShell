@@ -70,7 +70,13 @@ function buildCSS(colours, mode) {
     --accent-color:     ${c("tertiary")};
     --muted:            ${c("surfaceContainerHigh")};
     --muted-foreground: ${c("onSurfaceVariant")};
-}`;
+}
+html, body {
+    background-color: #${colours.surface} !important;
+    color:            #${colours.onSurface} !important;
+}
+a         { color: #${colours.primary}   !important; }
+a:visited { color: #${colours.secondary} !important; }`;
 }
 
 let _styleEl = null;
