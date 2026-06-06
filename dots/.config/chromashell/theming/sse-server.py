@@ -52,9 +52,13 @@ class Handler(http.server.BaseHTTPRequestHandler):
         if self.path == "/events":
             self._sse()
         elif self.path == "/chromafox.xpi":
-            self._xpi()
+            self._xpi(head=False)
         else:
             self._json()
+
+    def do_HEAD(self) -> None:
+        if self.path == "/chromafox.xpi":
+            self._xpi(head=True)
 
     def _json(self) -> None:
         try:
@@ -70,7 +74,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(data)
 
-    def _xpi(self) -> None:
+    def _xpi(self, head: bool = False) -> None:
         try:
             data = XPI.read_bytes()
         except OSError:
@@ -82,7 +86,8 @@ class Handler(http.server.BaseHTTPRequestHandler):
         self.send_header("Content-Length", str(len(data)))
         self.send_header("Connection", "close")
         self.end_headers()
-        self.wfile.write(data)
+        if not head:
+            self.wfile.write(data)
 
     def _sse(self) -> None:
         self.send_response(200)
