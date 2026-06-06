@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>ChromaFox Settings</title>
+  <link rel="stylesheet" href="settings.css">
+</head>
+<body>
+  <header>
+    <span class="title">ChromaFox — Settings</span>
+  </header>
+
+  <main>
+    <section class="card">
+      <h2>Color Overrides</h2>
+      <p class="hint">Map each CSS target to a Material You color role.</p>
+
+      <div class="map-row">
+        <label for="bodyBg">Page background</label>
+        <select id="bodyBg"></select>
+      </div>
+      <div class="map-row">
+        <label for="bodyText">Page text</label>
+        <select id="bodyText"></select>
+      </div>
+      <div class="map-row">
+        <label for="linkColor">Links</label>
+        <select id="linkColor"></select>
+      </div>
+      <div class="map-row">
+        <label for="visitedColor">Visited links</label>
+        <select id="visitedColor"></select>
+      </div>
+    </section>
+
+    <footer>
+      <button class="btn-reset" id="btnReset">Reset to defaults</button>
+      <span class="saved-msg" id="savedMsg"></span>
+    </footer>
+  </main>
+
+  <script src="settings.js"></script>
+</body>
+</html>

@@ -1,0 +1,119 @@
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+    --bg:       #1c1b1f;
+    --bg-card:  #2b2930;
+    --text:     #e6e1e5;
+    --text-dim: #938f99;
+    --accent:   #d0bcff;
+    --danger:   #f2b8b5;
+    --border:   #49454f;
+    --radius:   10px;
+}
+
+body {
+    min-width: 480px;
+    max-width: 600px;
+    margin: 0 auto;
+    background: var(--bg);
+    color: var(--text);
+    font: 14px/1.5 system-ui, sans-serif;
+    padding-bottom: 32px;
+}
+
+header {
+    padding: 20px 24px 16px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 20px;
+}
+.title {
+    font-size: 17px;
+    font-weight: 600;
+    color: var(--accent);
+}
+
+main { padding: 0 24px; }
+
+.card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 18px 20px;
+    margin-bottom: 20px;
+}
+.card h2 {
+    font-size: 13px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: .6px;
+    color: var(--text-dim);
+    margin-bottom: 6px;
+}
+.hint {
+    font-size: 12px;
+    color: var(--text-dim);
+    margin-bottom: 14px;
+}
+
+.map-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--border);
+    gap: 16px;
+}
+.map-row:last-child { border-bottom: none; }
+
+.map-row label {
+    font-size: 13px;
+    color: var(--text);
+    flex-shrink: 0;
+    min-width: 140px;
+}
+
+.map-row select {
+    font: inherit;
+    font-size: 13px;
+    background: var(--bg);
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 5px 10px;
+    cursor: pointer;
+    flex: 1;
+    max-width: 220px;
+    appearance: auto;
+}
+.map-row select:focus {
+    outline: 2px solid var(--accent);
+    outline-offset: 1px;
+}
+
+footer {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 0 24px;
+}
+
+.btn-reset {
+    font: inherit;
+    font-size: 13px;
+    padding: 7px 16px;
+    background: transparent;
+    color: var(--text-dim);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: color .15s, border-color .15s;
+}
+.btn-reset:hover { color: var(--danger); border-color: var(--danger); }
+
+.saved-msg {
+    font-size: 12px;
+    color: var(--accent);
+    opacity: 0;
+    transition: opacity .3s;
+}
+.saved-msg.visible { opacity: 1; }

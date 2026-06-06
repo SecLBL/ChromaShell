@@ -6,8 +6,16 @@ const STYLE_ID = "chromafox-theme";
 let _styleEl   = null;
 let _lastMsg   = null;
 
-function buildCSS(colours, mode) {
-    const c = (role) => `#${colours[role] || "808080"}`;
+const COLOR_MAP_DEFAULTS = {
+    bodyBg:       "surface",
+    bodyText:     "onSurface",
+    linkColor:    "primary",
+    visitedColor: "secondary",
+};
+
+function buildCSS(colours, mode, colorMap) {
+    const cm = { ...COLOR_MAP_DEFAULTS, ...colorMap };
+    const c  = (role) => `#${colours[role] || "808080"}`;
     return `
 :root {
     color-scheme: ${mode};
@@ -74,11 +82,11 @@ function buildCSS(colours, mode) {
     --muted-foreground: ${c("onSurfaceVariant")};
 }
 html, body {
-    background-color: #${colours.surface}   !important;
-    color:            #${colours.onSurface} !important;
+    background-color: ${c(cm.bodyBg)}   !important;
+    color:            ${c(cm.bodyText)} !important;
 }
-a         { color: #${colours.primary}   !important; }
-a:visited { color: #${colours.secondary} !important; }`;
+a         { color: ${c(cm.linkColor)}    !important; }
+a:visited { color: ${c(cm.visitedColor)} !important; }`;
 }
 
 function removeInjection() {
@@ -87,18 +95,22 @@ function removeInjection() {
     _styleEl = null;
 }
 
-function applyColors(colours, mode) {
+function applyColors(colours, mode, colorMap) {
     if (!_styleEl) {
         _styleEl = document.createElement("style");
         _styleEl.id = STYLE_ID;
         (document.head || document.documentElement).appendChild(_styleEl);
     }
-    _styleEl.textContent = buildCSS(colours, mode);
+    _styleEl.textContent = buildCSS(colours, mode, colorMap);
 }
 
-async function shouldInject() {
-    const { enabled = true, blacklist = [], whitelist = [] } =
-        await browser.storage.local.get(["enabled", "blacklist", "whitelist"]);
+async function getSettings() {
+    const { enabled = true, blacklist = [], whitelist = [], colorMap = {} } =
+        await browser.storage.local.get(["enabled", "blacklist", "whitelist", "colorMap"]);
+    return { enabled, blacklist, whitelist, colorMap };
+}
+
+function shouldInjectFor({ enabled, blacklist, whitelist }) {
     if (!enabled) return false;
     const d = location.hostname.replace(/^www\./, "");
     if (blacklist.includes(d)) return false;
@@ -107,8 +119,9 @@ async function shouldInject() {
 }
 
 async function checkAndApply() {
-    if (await shouldInject()) {
-        if (_lastMsg) applyColors(_lastMsg.colours, _lastMsg.mode);
+    const settings = await getSettings();
+    if (shouldInjectFor(settings)) {
+        if (_lastMsg) applyColors(_lastMsg.colours, _lastMsg.mode, settings.colorMap);
     } else {
         removeInjection();
     }
@@ -122,14 +135,13 @@ browser.runtime.onMessage.addListener((msg) => {
     }
 });
 
-// Re-evaluate whenever settings change (toggle, blacklist, whitelist)
+// Re-evaluate whenever settings change
 browser.storage.onChanged.addListener((changes) => {
-    if ("enabled" in changes || "blacklist" in changes || "whitelist" in changes) {
+    if ("enabled" in changes || "blacklist" in changes || "whitelist" in changes || "colorMap" in changes) {
         checkAndApply();
     }
 });
 
-// Request current colors on page load
 browser.runtime.sendMessage({ type: "chromafox-get-colors" }).then((resp) => {
     if (resp && resp.colours) {
         _lastMsg = { colours: resp.colours, mode: resp.mode };

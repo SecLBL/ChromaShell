@@ -141,6 +141,12 @@ async function init() {
         renderUI();
     };
 
+    // Settings icon
+    document.getElementById("btnSettings").onclick = () => {
+        browser.tabs.create({ url: browser.runtime.getURL("settings.html") });
+        window.close();
+    };
+
     renderUI();
 }
 
