@@ -1,14 +1,19 @@
 {
   "manifest_version": 2,
   "name": "ChromaFox",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Live browser theming from the ChromaShell color server.",
   "permissions": [
     "theme",
     "tabs",
+    "storage",
     "http://127.0.0.1:29847/*",
     "<all_urls>"
   ],
+  "browser_action": {
+    "default_popup": "popup.html",
+    "default_title": "ChromaFox"
+  },
   "content_scripts": [
     {
       "matches": ["<all_urls>"],

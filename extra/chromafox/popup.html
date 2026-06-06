@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <header>
+    <span class="title">ChromaFox</span>
+    <label class="toggle" title="Enable website theming">
+      <input type="checkbox" id="globalToggle">
+      <span class="track"><span class="thumb"></span></span>
+    </label>
+  </header>
+
+  <section class="site-row">
+    <span class="domain" id="currentDomain">—</span>
+    <div class="site-btns">
+      <button class="btn" id="btnBlock">Block</button>
+      <button class="btn" id="btnAllow">Allow only</button>
+    </div>
+  </section>
+
+  <section class="list-section">
+    <div class="list-header">
+      <span>Blocked</span>
+      <span class="badge" id="blacklistCount">0</span>
+    </div>
+    <ul class="domain-list" id="blacklistEl"></ul>
+  </section>
+
+  <section class="list-section">
+    <div class="list-header">
+      <span>Allowed only</span>
+      <span class="badge" id="whitelistCount">0</span>
+    </div>
+    <p class="hint">When non-empty, theming only applies to sites in this list.</p>
+    <ul class="domain-list" id="whitelistEl"></ul>
+  </section>
+
+  <script src="popup.js"></script>
+</body>
+</html>
