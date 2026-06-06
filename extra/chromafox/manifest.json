@@ -5,7 +5,17 @@
   "description": "Live browser theming from the ChromaShell color server.",
   "permissions": [
     "theme",
-    "http://127.0.0.1:29847/*"
+    "tabs",
+    "http://127.0.0.1:29847/*",
+    "<all_urls>"
+  ],
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content.js"],
+      "run_at": "document_start",
+      "all_frames": false
+    }
   ],
   "background": {
     "scripts": ["background.js"],
