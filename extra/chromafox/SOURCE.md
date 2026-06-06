@@ -9,4 +9,4 @@ to the ChromaShell color server (127.0.0.1:29847/events).
 - no path substitution in Nix
 - works identically for all Firefox-based browsers
 - color mapping derived from caelestia-firefox-integration/src/extension.ts
-- DarkReader integration intentionally omitted
+- DarkReader integration: connects to addon@darkreader.org via runtime.connect; themes websites with Material You surface/onSurface colors

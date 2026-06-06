@@ -44,6 +44,45 @@ const COLOR_MAP = {
     sidebar_highlight_text:         "onSecondaryContainer",
 };
 
+// Dark Reader connector — graceful no-op if Dark Reader is not installed.
+const DR_EXT_ID = "addon@darkreader.org";
+let _drPort = null;
+
+function _drConnect() {
+    try {
+        _drPort = browser.runtime.connect(DR_EXT_ID, { name: "chromafox" });
+        _drPort.onDisconnect.addListener(() => {
+            _drPort = null;
+            setTimeout(_drConnect, 5000);
+        });
+    } catch (_) {
+        _drPort = null;
+    }
+}
+_drConnect();
+
+function applyDarkReader(scheme) {
+    if (!_drPort) return;
+    const c = scheme.colours;
+    try {
+        _drPort.postMessage({
+            type: "setTheme",
+            data: {
+                mode:                       scheme.mode === "dark" ? 1 : 2,
+                brightness:                 100,
+                contrast:                   100,
+                sepia:                      0,
+                darkSchemeBackgroundColor:  `#${c.surface}`,
+                darkSchemeTextColor:        `#${c.onSurface}`,
+                lightSchemeBackgroundColor: `#${c.surface}`,
+                lightSchemeTextColor:       `#${c.onSurface}`,
+                scrollbarColor:             "auto",
+                selectionColor:             "auto",
+            },
+        });
+    } catch (_) {}
+}
+
 function applyTheme(data) {
     const scheme  = JSON.parse(data);
     const colours = scheme.colours;
@@ -59,6 +98,7 @@ function applyTheme(data) {
             content_color_scheme: scheme.mode,
         },
     });
+    applyDarkReader(scheme);
 }
 
 const es = new EventSource("http://127.0.0.1:29847/events");
