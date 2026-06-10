@@ -1,17 +1,31 @@
 #!/usr/bin/env bash
-# ChromaShell — setzt einen LV2-Parameter live UND persistiert ihn
+# ChromaShell — sets a plugin parameter live AND persists it
 #
 # Usage:
 #   audio-param.sh <plugin> <symbol> <value>      # set & save
 #   audio-param.sh --get <plugin> <symbol>        # show current value
 #   audio-param.sh --list <plugin>                # show all params of plugin
+#   audio-param.sh --apply <plugin>               # re-apply saved params live
+#   audio-param.sh --apply-all                    # re-apply everything live
 #   audio-param.sh --reset <plugin>               # reset plugin to defaults
 #   audio-param.sh --reset-all                    # reset whole config
 #
 # Plugins:  mic-gate | mic-nr | mic-comp | chat-nr | chat-comp | general-eq
 #
-# Quickshell-Aufruf:
-#   Process { command: ["audio-param.sh", "mic-comp", "cr", "4.0"] }
+# Backend: all plugins run inside native PipeWire filter-chain graphs
+# (chains.conf, hosted by chromashell-audio.service). Live updates go through
+# `pw-cli set-param <node> Props { params = [ "<filter>:<control>" <value> ] }`.
+# Values are always persisted in audio.json first; the live update only takes
+# effect while the chain node is running (start-audio.sh re-applies everything
+# after service start, so a missed live update never survives a restart).
+#
+# Plugin -> chain node / filter name:
+#   mic-gate    mic_chain_in      gate:   (LSP Gate Stereo, LV2 symbols)
+#   mic-nr      mic_chain_in      nr:     (DeepFilterNet, LADSPA controls)
+#   mic-comp    mic_chain_in      comp:   (LSP Compressor Stereo)
+#   chat-nr     chat_chain_in     nr:
+#   chat-comp   chat_chain_in     comp:
+#   general-eq  general_chain_in  eq:     (fil4 Parametric EQ)
 #
 # ── mic-gate (LSP Gate Stereo) ──────────────────────────────────────────────
 #
@@ -48,10 +62,15 @@
 #   slpm LP filter mode      0–3     0=off,1=6dB,2=12dB,3=18dB/oct
 #   slpf LP frequency        Hz      Low-pass cutoff frequency      (10–20000)
 #
-# ── mic-nr / chat-nr (RNNoise — werman noise-suppression-for-voice) ─────────
+# ── mic-nr / chat-nr (DeepFilterNet — deep learning noise suppression) ──────
 #
-#   These plugins run with jalv -i (non-interactive) to avoid audio artifacts.
-#   Use audio-nr-bypass.sh to toggle them in/out of the signal chain.
+#   enabled          0/1   Virtual toggle: applies attenuation or 0 dB live
+#   attenuation      dB    Max noise attenuation, 0 = transparent  (0–100)
+#   postfilter_beta  —     Post filter strength                    (0–0.05)
+#   min_db           dB    Min processing threshold                (-15–35)
+#   max_erb_db       dB    Max ERB processing threshold            (-15–35)
+#   max_df_db        dB    Max DF processing threshold             (-15–35)
+#   min_buffer       fr    Min processing buffer (frames)          (0–10)
 #
 # ── mic-comp / chat-comp (LSP Compressor Stereo) ────────────────────────────
 #
@@ -119,7 +138,7 @@ set -euo pipefail
 
 JQ="$(command -v jq)"
 if [[ -z "$JQ" ]]; then
-    echo "Error: jq nicht im PATH" >&2
+    echo "Error: jq not in PATH" >&2
     exit 1
 fi
 
@@ -134,12 +153,12 @@ usage() {
 
 require_config() {
     if [[ ! -f "$CONFIG_FILE" ]]; then
-        echo "Error: $CONFIG_FILE existiert nicht — start-jalv.sh erst laufen lassen" >&2
+        echo "Error: $CONFIG_FILE does not exist — run start-audio.sh first" >&2
         exit 1
     fi
 }
 
-# Atomic JSON-Update: in tmp schreiben, dann mv (verhindert Korruption bei Race)
+# Atomic JSON update: write to tmp, then mv (prevents corruption on races)
 update_config() {
     local tmp
     tmp="$(mktemp "${CONFIG_FILE}.XXXXXX")"
@@ -147,12 +166,113 @@ update_config() {
         mv "$tmp" "$CONFIG_FILE"
     else
         rm -f "$tmp"
-        echo "Error: jq-Update fehlgeschlagen" >&2
+        echo "Error: jq update failed" >&2
         exit 1
     fi
 }
 
-# ── Subcommands ────────────────────────────────────────────────────────────
+# ── Plugin -> filter-chain mapping ──────────────────────────────────────────
+
+node_for_plugin() {
+    case "$1" in
+        mic-gate|mic-nr|mic-comp) echo "mic_chain_in" ;;
+        chat-nr|chat-comp)        echo "chat_chain_in" ;;
+        general-eq)               echo "general_chain_in" ;;
+        *) return 1 ;;
+    esac
+}
+
+prefix_for_plugin() {
+    case "$1" in
+        mic-gate)           echo "gate" ;;
+        mic-nr|chat-nr)     echo "nr" ;;
+        mic-comp|chat-comp) echo "comp" ;;
+        general-eq)         echo "eq" ;;
+        *) return 1 ;;
+    esac
+}
+
+is_nr_plugin() {
+    [[ "$1" == "mic-nr" || "$1" == "chat-nr" ]]
+}
+
+# DeepFilterNet: clean config symbols -> LADSPA control names.
+# Prints nothing for the virtual "enabled" symbol (handled separately).
+nr_control_name() {
+    case "$1" in
+        attenuation)     echo "Attenuation Limit (dB)" ;;
+        postfilter_beta) echo "Post Filter Beta" ;;
+        min_db)          echo "Min processing threshold (dB)" ;;
+        max_erb_db)      echo "Max ERB processing threshold (dB)" ;;
+        max_df_db)       echo "Max DF processing threshold (dB)" ;;
+        min_buffer)      echo "Min Processing Buffer (frames)" ;;
+        enabled)         ;;
+        *) return 1 ;;
+    esac
+}
+
+node_id_for() {
+    pw-dump 2>/dev/null \
+        | "$JQ" -r --arg n "$1" \
+            'first(.[] | select(.type=="PipeWire:Interface:Node") | select(.info.props["node.name"]==$n) | .id) // empty'
+}
+
+# live_set <plugin> <control-name> <value> [<control-name> <value> …]
+# Best effort: persistence always wins; a missing node only warns.
+live_set() {
+    local plugin="$1"; shift
+    local node prefix id pod=""
+    node="$(node_for_plugin "$plugin")" || return 1
+    prefix="$(prefix_for_plugin "$plugin")" || return 1
+    id="$(node_id_for "$node")"
+    if [[ -z "$id" ]]; then
+        echo "Warning: chain node '$node' not found — value persisted only" >&2
+        return 0
+    fi
+    while [[ $# -ge 2 ]]; do
+        pod+=" \"${prefix}:$1\" $2"
+        shift 2
+    done
+    [[ -z "$pod" ]] && return 0
+    pw-cli set-param "$id" Props "{ params = [${pod} ] }" > /dev/null \
+        || echo "Warning: pw-cli set-param failed on '$node' — value persisted only" >&2
+}
+
+# apply_plugin <plugin> — re-apply all saved params of one plugin live
+apply_plugin() {
+    local plugin="$1"
+    local params
+    params="$("$JQ" -c --arg p "$plugin" '.[$p].params // {}' "$CONFIG_FILE")"
+    [[ "$params" == "{}" ]] && return 0
+
+    local -a pairs=()
+    local sym val
+    if is_nr_plugin "$plugin"; then
+        local enabled att name
+        enabled="$(echo "$params" | "$JQ" -r '.enabled // 1')"
+        att="$(echo "$params" | "$JQ" -r '.attenuation // 100')"
+        if [[ "${enabled%.*}" == "0" ]]; then
+            pairs+=("Attenuation Limit (dB)" "0.0")
+        else
+            pairs+=("Attenuation Limit (dB)" "$att")
+        fi
+        while IFS=$'\t' read -r sym val; do
+            [[ "$sym" == "enabled" || "$sym" == "attenuation" ]] && continue
+            name="$(nr_control_name "$sym" || true)"
+            [[ -n "$name" ]] && pairs+=("$name" "$val")
+        done < <(echo "$params" | "$JQ" -r 'to_entries[] | "\(.key)\t\(.value)"')
+    else
+        while IFS=$'\t' read -r sym val; do
+            pairs+=("$sym" "$val")
+        done < <(echo "$params" | "$JQ" -r 'to_entries[] | "\(.key)\t\(.value)"')
+    fi
+
+    [[ ${#pairs[@]} -eq 0 ]] && return 0
+    live_set "$plugin" "${pairs[@]}"
+    echo "Applied $plugin ($(( ${#pairs[@]} / 2 )) params)"
+}
+
+# ── Subcommands ─────────────────────────────────────────────────────────────
 
 if [[ $# -eq 0 ]]; then
     usage
@@ -175,67 +295,104 @@ case "${1:-}" in
         "$JQ" -r --arg p "$2" '.[$p].params | to_entries[] | "\(.key) = \(.value)"' "$CONFIG_FILE"
         ;;
 
+    --apply)
+        require_config
+        [[ $# -ne 2 ]] && { echo "Usage: $0 --apply <plugin>" >&2; exit 1; }
+        node_for_plugin "$2" > /dev/null || { echo "Error: unknown plugin '$2'" >&2; exit 1; }
+        apply_plugin "$2"
+        ;;
+
+    --apply-all)
+        require_config
+        while IFS= read -r plugin; do
+            node_for_plugin "$plugin" > /dev/null 2>&1 || continue
+            apply_plugin "$plugin"
+        done < <("$JQ" -r 'keys_unsorted[]' "$CONFIG_FILE")
+        ;;
+
     --reset)
         [[ $# -ne 2 ]] && { echo "Usage: $0 --reset <plugin>" >&2; exit 1; }
-        [[ ! -f "$DEFAULT_CONFIG" ]] && { echo "Error: Default-Config fehlt: $DEFAULT_CONFIG" >&2; exit 1; }
+        [[ ! -f "$DEFAULT_CONFIG" ]] && { echo "Error: default config missing: $DEFAULT_CONFIG" >&2; exit 1; }
+        require_config
         PLUGIN="$2"
-        FIFO="/tmp/jalv-${PLUGIN}"
 
         default_params="$("$JQ" --arg p "$PLUGIN" '.[$p].params' "$DEFAULT_CONFIG")"
         if [[ "$default_params" == "null" ]]; then
-            echo "Error: Plugin '$PLUGIN' nicht in Default-Config" >&2
+            echo "Error: plugin '$PLUGIN' not in default config" >&2
             exit 1
         fi
         update_config ".\"$PLUGIN\".params = $default_params"
-
-        if [[ -p "$FIFO" ]]; then
-            "$JQ" -r --arg p "$PLUGIN" '.[$p].params | to_entries[] | "set \(.key) \(.value)"' "$CONFIG_FILE" \
-                > "$FIFO"
-            echo "Plugin '$PLUGIN' auf Defaults zurückgesetzt (Live + persistent)"
-        else
-            echo "Plugin '$PLUGIN' persistent zurückgesetzt — FIFO fehlt, Live-Update übersprungen"
-        fi
+        apply_plugin "$PLUGIN"
+        echo "Plugin '$PLUGIN' reset to defaults (live + persistent)"
         ;;
 
     --reset-all)
-        [[ ! -f "$DEFAULT_CONFIG" ]] && { echo "Error: Default-Config fehlt: $DEFAULT_CONFIG" >&2; exit 1; }
+        [[ ! -f "$DEFAULT_CONFIG" ]] && { echo "Error: default config missing: $DEFAULT_CONFIG" >&2; exit 1; }
         cp "$DEFAULT_CONFIG" "$CONFIG_FILE"
-        echo "Komplette Config zurückgesetzt — Plugins für Reload neu starten"
+        while IFS= read -r plugin; do
+            node_for_plugin "$plugin" > /dev/null 2>&1 || continue
+            apply_plugin "$plugin"
+        done < <("$JQ" -r 'keys_unsorted[]' "$CONFIG_FILE")
+        echo "Whole config reset to defaults (live + persistent)"
         ;;
 
     --*)
-        echo "Unbekannte Option: $1" >&2
+        echo "Unknown option: $1" >&2
         usage
         ;;
 
     *)
-        # Standard-Aufruf: <plugin> <symbol> <value>
+        # Standard call: <plugin> <symbol> <value>
         [[ $# -ne 3 ]] && usage
 
         PLUGIN="$1"
         SYMBOL="$2"
         VALUE="$3"
-        FIFO="/tmp/jalv-${PLUGIN}"
 
         require_config
+        node_for_plugin "$PLUGIN" > /dev/null || { echo "Error: unknown plugin '$PLUGIN'" >&2; exit 1; }
 
         if [[ "$("$JQ" -r --arg p "$PLUGIN" '.[$p] // "null"' "$CONFIG_FILE")" == "null" ]]; then
-            echo "Error: Plugin '$PLUGIN' nicht in Config" >&2
+            echo "Error: plugin '$PLUGIN' not in config" >&2
             exit 1
         fi
 
         if ! [[ "$VALUE" =~ ^-?[0-9]+(\.[0-9]+)?$ ]]; then
-            echo "Error: Wert '$VALUE' ist nicht numerisch" >&2
+            echo "Error: value '$VALUE' is not numeric" >&2
             exit 1
         fi
 
         update_config ".\"$PLUGIN\".params.\"$SYMBOL\" = $VALUE"
 
-        if [[ -p "$FIFO" ]]; then
-            echo "set ${SYMBOL} ${VALUE}" > "$FIFO"
-            echo "$PLUGIN.$SYMBOL = $VALUE  (live + persistent)"
+        if is_nr_plugin "$PLUGIN"; then
+            case "$SYMBOL" in
+                enabled)
+                    att="$("$JQ" -r --arg p "$PLUGIN" '.[$p].params.attenuation // 100' "$CONFIG_FILE")"
+                    if [[ "${VALUE%.*}" == "0" ]]; then
+                        live_set "$PLUGIN" "Attenuation Limit (dB)" "0.0"
+                    else
+                        live_set "$PLUGIN" "Attenuation Limit (dB)" "$att"
+                    fi
+                    ;;
+                attenuation)
+                    enabled="$("$JQ" -r --arg p "$PLUGIN" '.[$p].params.enabled // 1' "$CONFIG_FILE")"
+                    if [[ "${enabled%.*}" != "0" ]]; then
+                        live_set "$PLUGIN" "Attenuation Limit (dB)" "$VALUE"
+                    fi
+                    ;;
+                *)
+                    name="$(nr_control_name "$SYMBOL" || true)"
+                    if [[ -n "$name" ]]; then
+                        live_set "$PLUGIN" "$name" "$VALUE"
+                    else
+                        echo "Warning: unknown NR symbol '$SYMBOL' — persisted only" >&2
+                    fi
+                    ;;
+            esac
         else
-            echo "$PLUGIN.$SYMBOL = $VALUE  (nur persistent — FIFO $FIFO fehlt)"
+            live_set "$PLUGIN" "$SYMBOL" "$VALUE"
         fi
+
+        echo "$PLUGIN.$SYMBOL = $VALUE  (live + persistent)"
         ;;
 esac

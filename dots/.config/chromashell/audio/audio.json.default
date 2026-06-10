@@ -1,6 +1,16 @@
 {
+  "mic-nr": {
+    "params": {
+      "enabled": 1,
+      "attenuation": 100,
+      "postfilter_beta": 0.02,
+      "min_db": -15,
+      "max_erb_db": 35,
+      "max_df_db": 35,
+      "min_buffer": 0
+    }
+  },
   "mic-gate": {
-    "uri": "http://lsp-plug.in/plugins/lv2/gate_stereo",
     "params": {
       "enabled": 1,
       "gt":   0.01,
@@ -15,12 +25,7 @@
       "hold": 171
     }
   },
-  "mic-nr": {
-    "uri": "https://github.com/werman/noise-suppression-for-voice#stereo",
-    "params": {}
-  },
   "mic-comp": {
-    "uri": "http://lsp-plug.in/plugins/lv2/compressor_stereo",
     "params": {
       "cm":   0,
       "al":   0.06267,
@@ -34,11 +39,17 @@
     }
   },
   "chat-nr": {
-    "uri": "https://github.com/werman/noise-suppression-for-voice#stereo",
-    "params": {}
+    "params": {
+      "enabled": 1,
+      "attenuation": 100,
+      "postfilter_beta": 0.02,
+      "min_db": -15,
+      "max_erb_db": 35,
+      "max_df_db": 35,
+      "min_buffer": 0
+    }
   },
   "chat-comp": {
-    "uri": "http://lsp-plug.in/plugins/lv2/compressor_stereo",
     "params": {
       "cm":   0,
       "al":   0.06267,
@@ -52,7 +63,6 @@
     }
   },
   "general-eq": {
-    "uri": "http://gareus.org/oss/lv2/fil4#stereo",
     "params": {
       "enable": 1, "gain": 0,
       "HighPass": 0, "HPfreq": 20, "HPQ": 0.7,
