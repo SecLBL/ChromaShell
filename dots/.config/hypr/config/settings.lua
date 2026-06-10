@@ -199,3 +199,10 @@ hl.config({
         error_position = 1,
     },
 })
+
+
+-- ── fix ydotool for people using other kb layout ──────────────────────────────
+hl.device({
+    name = "ydotoold-virtual-device",
+    kb_layout = "us",
+})
