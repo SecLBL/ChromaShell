@@ -233,7 +233,7 @@ wake_node() {
     local node="$1" id="$2" tries=0
     [[ "$(node_state "$id")" == "running" ]] && return 0
     head -c 96000 /dev/zero \
-        | pw-cat -p --target "$node" --rate 48000 --channels 2 --format s16 - \
+        | pw-cat -p --raw --target "$node" --rate 48000 --channels 2 --format s16 - \
         2>/dev/null &
     while (( tries++ < 10 )); do
         [[ "$(node_state "$id")" == "running" ]] && return 0
