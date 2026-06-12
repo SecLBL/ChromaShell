@@ -82,5 +82,7 @@ hl.layer_rule({ match={ namespace="logout_dialog" },                   animation
 hl.layer_rule({ match={ namespace="caelestia-(border-exclusion|area-picker)" }, no_anim=true })
 hl.layer_rule({ match={ namespace="caelestia-(drawers|background)" },  animation="fade" })
 hl.layer_rule({ match={ namespace="chromashell-frame" },               blur=true, ignore_alpha=0 })
+hl.layer_rule({ match={ namespace="caelestia-cassette" },              blur=true, ignore_alpha=0.04 })
+hl.layer_rule({ match={ namespace="caelestia-cassette" },              animation="fade" })
 hl.layer_rule({ match={ namespace="launcher" },                        animation="popin 80%" })
 hl.layer_rule({ match={ namespace="launcher" },                        blur=true })
