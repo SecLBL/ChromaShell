@@ -14,6 +14,15 @@ hl.define_submap("global", "global", function()
     hl.bind(M .. " + mouse_up",              hl.dsp.global("caelestia:launcherInterrupt"),  { non_consuming=true })
     hl.bind(M .. " + mouse_down",            hl.dsp.global("caelestia:launcherInterrupt"),  { non_consuming=true })
 
+end)
+
+-- ── Window — mouse drag / resize (Außerhalb der global Submap) ─────────────
+hl.bind(M .. " + mouse:272",              hl.dsp.window.drag(),                           { mouse=true })
+hl.bind(v.kbMoveWindow,                    hl.dsp.window.drag(),                           { mouse=true })
+hl.bind(M .. " + mouse:273",              hl.dsp.window.resize(),                         { mouse=true })
+hl.bind(v.kbResizeWindow,                  hl.dsp.window.resize(),                         { mouse=true })
+
+hl.define_submap("global", "global", function()
     -- ── Caelestia shell ───────────────────────────────────────────────────────
     hl.bind(v.kbSession,                     hl.dsp.global("caelestia:session"))
     hl.bind(v.kbShowSidebar,                 hl.dsp.global("caelestia:sidebar"))
@@ -115,12 +124,6 @@ hl.define_submap("global", "global", function()
     hl.bind(M .. " + ALT + right",            hl.dsp.window.resize({ x=100,  y=0,    relative=true }),  { repeating=true })
     hl.bind(M .. " + ALT + up",               hl.dsp.window.resize({ x=0,    y=-100, relative=true }),  { repeating=true })
     hl.bind(M .. " + ALT + down",             hl.dsp.window.resize({ x=0,    y=100,  relative=true }),  { repeating=true })
-
-    -- ── Window — mouse drag / resize ──────────────────────────────────────────
-    hl.bind(M .. " + mouse:272",              hl.dsp.window.drag(),                           { mouse=true })
-    hl.bind(v.kbMoveWindow,                    hl.dsp.window.drag(),                           { mouse=true })
-    hl.bind(M .. " + mouse:273",              hl.dsp.window.resize(),                         { mouse=true })
-    hl.bind(v.kbResizeWindow,                  hl.dsp.window.resize(),                         { mouse=true })
 
     -- ── Window — actions ──────────────────────────────────────────────────────
     hl.bind("CTRL + SUPER + LESS",       hl.dsp.window.center(1))
