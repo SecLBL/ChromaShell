@@ -91,12 +91,14 @@ link_static() {
     wait_node_out "MixBusChat.output" || return 1
     wait_node_out "MixBus.output"     || return 1
 
-    pw-link "mic_chain_out:capture_FL"     "VirtualCable.input:playback_FL" || true
-    pw-link "mic_chain_out:capture_FR"     "VirtualCable.input:playback_FR" || true
-    pw-link "MixBusChat.output:capture_FL" "chat_chain_in:playback_FL"      || true
-    pw-link "MixBusChat.output:capture_FR" "chat_chain_in:playback_FR"      || true
-    pw-link "MixBus.output:capture_FL"     "general_chain_in:playback_FL"   || true
-    pw-link "MixBus.output:capture_FR"     "general_chain_in:playback_FR"   || true
+    # Passive links: they carry audio but do not keep the chains awake, so an
+    # unused chain suspends until a real client (player/recorder) activates it.
+    pw-link -P "mic_chain_out:capture_FL"     "VirtualCable.input:playback_FL" || true
+    pw-link -P "mic_chain_out:capture_FR"     "VirtualCable.input:playback_FR" || true
+    pw-link -P "MixBusChat.output:capture_FL" "chat_chain_in:playback_FL"      || true
+    pw-link -P "MixBusChat.output:capture_FR" "chat_chain_in:playback_FR"      || true
+    pw-link -P "MixBus.output:capture_FL"     "general_chain_in:playback_FL"   || true
+    pw-link -P "MixBus.output:capture_FR"     "general_chain_in:playback_FR"   || true
 
     echo "Static routes linked."
 }

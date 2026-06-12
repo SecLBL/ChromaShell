@@ -16,8 +16,9 @@
 # (chains.conf, hosted by chromashell-audio.service). Live updates go through
 # `pw-cli set-param <node> Props { params = [ "<filter>:<control>" <value> ] }`.
 # Values are always persisted in audio.json first; the live update only takes
-# effect while the chain node is running (start-audio.sh re-applies everything
-# after service start, so a missed live update never survives a restart).
+# effect while the chain node is running. Suspended chains (demand-suspend)
+# are woken briefly with a burst of silence before applying; if that fails,
+# start-audio.sh re-applies everything after the next service start anyway.
 #
 # Plugin -> chain node / filter name:
 #   mic-gate    mic_chain_in      gate:   (LSP Gate Stereo, LV2 symbols)
@@ -217,6 +218,30 @@ node_id_for() {
             'first(.[] | select(.type=="PipeWire:Interface:Node") | select(.info.props["node.name"]==$n) | .id) // empty'
 }
 
+node_state() {
+    pw-dump 2>/dev/null \
+        | "$JQ" -r --arg id "$1" \
+            'first(.[] | select(.id == ($id | tonumber)) | .info.state) // empty'
+}
+
+# wake_node <node-name> <node-id>
+# pw-cli set-param is a silent no-op on suspended nodes. With demand-suspend
+# the chains sleep while unused, so pump a short burst of silence into the
+# chain sink — the active stream link resumes the node long enough to apply
+# the param, then the chain suspends again on its own.
+wake_node() {
+    local node="$1" id="$2" tries=0
+    [[ "$(node_state "$id")" == "running" ]] && return 0
+    head -c 96000 /dev/zero \
+        | pw-cat -p --target "$node" --rate 48000 --channels 2 --format s16 - \
+        2>/dev/null &
+    while (( tries++ < 10 )); do
+        [[ "$(node_state "$id")" == "running" ]] && return 0
+        sleep 0.1
+    done
+    return 1
+}
+
 # live_set <plugin> <control-name> <value> [<control-name> <value> …]
 # Best effort: persistence always wins; a missing node only warns.
 live_set() {
@@ -227,6 +252,10 @@ live_set() {
     id="$(node_id_for "$node")"
     if [[ -z "$id" ]]; then
         echo "Warning: chain node '$node' not found — value persisted only" >&2
+        return 0
+    fi
+    if ! wake_node "$node" "$id"; then
+        echo "Warning: chain node '$node' suspended and did not wake — value persisted only" >&2
         return 0
     fi
     while [[ $# -ge 2 ]]; do

@@ -13,7 +13,9 @@ DEVICE="$2"
 OLD="${3:-}"
 
 disc() { pw-link -d "$1" "$2" 2>/dev/null || true; }
-conn() { pw-link    "$1" "$2" 2>/dev/null || true; }
+# Passive links: device links must not keep the chains awake on their own;
+# activity propagates from real clients through the passive path to the device.
+conn() { pw-link -P "$1" "$2" 2>/dev/null || true; }
 
 case "$BUS" in
     general)
