@@ -5,11 +5,14 @@ local _op = string.format("%g", v.windowOpacity)
 hl.window_rule({ match={ class=".*" }, opacity=_op .. " override " .. _op .. " override" })
 
 -- Full opacity for native-transparent or always-opaque apps
-hl.window_rule({ match={ class="foot|org%.quickshell|imv|swappy" }, opacity="1.0 override", no_blur=true })
+hl.window_rule({ match={ class="foot|imv|swappy" }, opacity="1.0 override", no_blur=true })
+
+-- Quickshell windows (nexus etc.) handle their own transparency; keep compositor blur behind them
+hl.window_rule({ match={ class="org\\.quickshell" }, opacity="1.0 override" })
 
 -- Full opacity + no blur for video playback
 hl.window_rule({
-    match   = { class="^(librewolf)$", title=".*(YouTube|Twitch|Netflix|Prime Video|S%.to|mp4).*" },
+    match   = { class="^(librewolf)$", title=".*(YouTube|Twitch|Netflix|Prime Video|S\\.to|mp4).*" },
     opacity = "1.0 override",
     no_blur = true,
 })
@@ -28,16 +31,16 @@ hl.window_rule({ match={ float=true, xwayland=false }, center=true })
 
 -- Simple float
 hl.window_rule({ match={ class="yad|zenity|wev|feh|imv" },                   float=true })
-hl.window_rule({ match={ class="org%.gnome%.FileRoller|file-roller" },        float=true })
+hl.window_rule({ match={ class="org\\.gnome\\.FileRoller|file-roller" },        float=true })
 hl.window_rule({ match={ class="blueman-manager" },                            float=true })
-hl.window_rule({ match={ class="com%.github%.GradienceTeam%.Gradience" },    float=true })
+hl.window_rule({ match={ class="com\\.github\\.GradienceTeam\\.Gradience" },    float=true })
 hl.window_rule({ match={ class="system-config-printer" },                     float=true })
-hl.window_rule({ match={ class="org%.quickshell" },                           float=true })
+hl.window_rule({ match={ class="org\\.quickshell" },                           float=true })
 hl.window_rule({ match={ class="ueberzugpp_.*" },                             float=true, no_initial_focus=true })
 
 -- Float + size + center
-hl.window_rule({ match={ class="org%.pulseaudio%.pavucontrol|yad-icon-browser" }, float=true, size={ "60%", "70%" }, center=true })
-hl.window_rule({ match={ class="org%.gnome%.Settings" },                           float=true, size={ "70%", "80%" }, center=true })
+hl.window_rule({ match={ class="org\\.pulseaudio\\.pavucontrol|yad-icon-browser" }, float=true, size={ "60%", "70%" }, center=true })
+hl.window_rule({ match={ class="org\\.gnome\\.Settings" },                           float=true, size={ "70%", "80%" }, center=true })
 hl.window_rule({ match={ class="nwg-look" },                                       float=true, size={ "50%", "60%" }, center=true })
 
 -- Dialogs
@@ -69,7 +72,7 @@ hl.window_rule({ match={ xwayland=true, title="win[0-9]+" }, rounding=10 })
 
 -- ── Special workspace assignments ────────────────────────────────────────────
 hl.window_rule({ match={ class="btop" },                                                                      workspace="special:sysmon" })
-hl.window_rule({ match={ class="feishin|Spotify|Supersonic|Cider|com%.github%.th_ch%.youtube_music|Plexamp" }, workspace="special:music" })
+hl.window_rule({ match={ class="feishin|Spotify|Supersonic|Cider|com\\.github\\.th_ch\\.youtube_music|Plexamp" }, workspace="special:music" })
 hl.window_rule({ match={ title="Spotify( Free)?" },                                                            workspace="special:music" })
 hl.window_rule({ match={ class="discord|equibop|vesktop|whatsapp" },                                          workspace="special:communication" })
 hl.window_rule({ match={ class="Todoist" },                                                                    workspace="special:todo" })
