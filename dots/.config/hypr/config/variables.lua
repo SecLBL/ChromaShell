@@ -3,6 +3,7 @@ local M = "SUPER"
 return {
     -- Apps
     mainMod     = M,
+    -- terminal/fileManager: fallback only; live value comes from shell.json general.apps (reload-bake, see keybindings.lua).
     terminal    = "kitty",
     fileManager = "thunar",
     browser     = "librewolf",

@@ -3,6 +3,25 @@ local M = v.mainMod
 
 local wsaction = "fish ~/.config/hypr/scripts/wsaction.fish"
 
+-- Resolve a "default app" from shell.json (general.apps) at config-eval (reload) time and bake it
+-- into the bind — zero per-keypress cost. Changing the app in shell.json (Nexus settings) needs
+-- `hyprctl reload` to apply. io is pcall-guarded: falls back to the static value if unavailable.
+local function shell_app(role, fallback)
+    local ok, cmd = pcall(function()
+        local cfg = os.getenv("HOME") .. "/.config/caelestia/shell.json"
+        local h = io.popen("jq -r '.general.apps." .. role ..
+            " // [] | join(\" \")' " .. cfg .. " 2>/dev/null")
+        if not h then return nil end
+        local out = h:read("*l"); h:close()
+        return out
+    end)
+    if ok and cmd and cmd ~= "" then return cmd end
+    return fallback
+end
+
+local termCmd     = "app2unit -- " .. shell_app("terminal", v.terminal)
+local explorerCmd = "app2unit -- " .. shell_app("explorer", v.fileManager)
+
 hl.define_submap("global", "global", function()
 
     -- ── Launcher (Super tap) ──────────────────────────────────────────────────
@@ -148,11 +167,12 @@ hl.define_submap("global", "global", function()
     hl.bind(v.kbTodo,                          hl.dsp.exec_cmd("caelestia toggle todo"))
 
     -- ── Apps ──────────────────────────────────────────────────────────────────
-    hl.bind(M .. " + Return",                 hl.dsp.exec_cmd("app2unit -- " .. v.terminal))
-    hl.bind(v.kbTerminal,                      hl.dsp.exec_cmd("app2unit -- " .. v.terminal))
+    -- terminal/fileManager resolved from shell.json (general.apps), baked at reload (see shell_app).
+    hl.bind(M .. " + Return",                 hl.dsp.exec_cmd(termCmd))
+    hl.bind(v.kbTerminal,                      hl.dsp.exec_cmd(termCmd))
     hl.bind(v.kbBrowser,                       hl.dsp.exec_cmd("app2unit -- " .. v.browser))
     hl.bind(v.kbEditor,                        hl.dsp.exec_cmd("app2unit -- " .. v.editor))
-    hl.bind(v.kbFileExplorer,                  hl.dsp.exec_cmd("app2unit -- " .. v.fileManager))
+    hl.bind(v.kbFileExplorer,                  hl.dsp.exec_cmd(explorerCmd))
     hl.bind("CTRL + ALT + Escape",            hl.dsp.exec_cmd("app2unit -- qps"))
     hl.bind("CTRL + ALT + V",                hl.dsp.exec_cmd("app2unit -- pavucontrol"))
 
