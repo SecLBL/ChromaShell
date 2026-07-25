@@ -36,10 +36,10 @@ hl.define_submap("global", "global", function()
 end)
 
 -- ── Window — mouse drag / resize (Außerhalb der global Submap) ─────────────
-hl.bind(M .. " + mouse:272",              hl.dsp.window.drag(),                           { drag=true })
-hl.bind(v.kbMoveWindow,                    hl.dsp.window.drag(),                           { drag=true })
-hl.bind(M .. " + mouse:273",              hl.dsp.window.resize(),                         { drag=true })
-hl.bind(v.kbResizeWindow,                  hl.dsp.window.resize(),                         { drag=true })
+hl.bind(M .. " + mouse:272",              hl.dsp.window.drag(),                           { mouse=true, submap_universal=true })
+hl.bind(v.kbMoveWindow,                    hl.dsp.window.drag(),                           { mouse=true, submap_universal=true })
+hl.bind(M .. " + mouse:273",              hl.dsp.window.resize(),                         { mouse=true, submap_universal=true })
+hl.bind(v.kbResizeWindow,                  hl.dsp.window.resize(),                         { mouse=true, submap_universal=true })
 
 hl.define_submap("global", "global", function()
     -- ── Caelestia shell ───────────────────────────────────────────────────────
