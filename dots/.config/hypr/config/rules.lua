@@ -12,7 +12,7 @@ hl.window_rule({ match={ class="org\\.quickshell" }, opacity="1.0 override" })
 
 -- Full opacity + no blur for video playback
 hl.window_rule({
-    match   = { class="^(librewolf)$", title=".*(YouTube|Twitch|Netflix|Prime Video|S\\.to|mp4).*" },
+    match   = { class="(?i)^" .. v.browser .. ".*", title=".*(YouTube|Twitch|Netflix|Prime Video|S\\.to|mp4).*" },
     opacity = "1.0 override",
     no_blur = true,
 })
