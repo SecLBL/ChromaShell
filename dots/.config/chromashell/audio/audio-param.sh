@@ -52,15 +52,16 @@
 #   cdw   Dry/Wet balance    %       100 = fully wet                (0–100)
 #
 #   Sidechain
-#   scm  SC mode             0–3     0=Peak,1=RMS,2=LPF,3=MidSide
+#   scm  SC mode             0–3     0=Peak,1=RMS,2=LPF,3=SMA
+#   scs  SC source           0–5     0=Mid,1=Side,2=Left,3=Right,4=Min,5=Max
 #   sla  SC lookahead        ms      Lookahead window               (0–20)
 #   scr  SC reactivity       ms      RMS window size                (0–250)
 #   scp  SC preamp           linear  Sidechain pre-amplification    (0–100)
 #
 #   Sidechain filters (for frequency-selective keying)
-#   shpm HP filter mode      0–3     0=off,1=6dB,2=12dB,3=18dB/oct
+#   shpm HP filter mode      0–3     0=off,1=12dB,2=24dB,3=36dB/oct
 #   shpf HP frequency        Hz      High-pass cutoff frequency     (10–20000)
-#   slpm LP filter mode      0–3     0=off,1=6dB,2=12dB,3=18dB/oct
+#   slpm LP filter mode      0–3     0=off,1=12dB,2=24dB,3=36dB/oct
 #   slpf LP frequency        Hz      Low-pass cutoff frequency      (10–20000)
 #
 # ── mic-nr / chat-nr (DeepFilterNet — deep learning noise suppression) ──────
@@ -94,7 +95,8 @@
 #   cdw   Dry/Wet balance   %       100 = fully wet                (0–100)
 #
 #   Sidechain
-#   scm  SC mode            0–3     0=Peak,1=RMS,2=LPF,3=MidSide
+#   scm  SC mode            0–3     0=Peak,1=RMS,2=LPF,3=SMA
+#   scs  SC source           0–5     0=Mid,1=Side,2=Left,3=Right,4=Min,5=Max
 #   sla  SC lookahead       ms      Lookahead window               (0–20)
 #   scr  SC reactivity      ms      RMS window size                (0–250)
 #   scp  SC preamp          linear  Sidechain pre-amplification    (0–100)
