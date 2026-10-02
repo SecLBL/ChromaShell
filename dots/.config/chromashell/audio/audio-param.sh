@@ -7,6 +7,7 @@
 #   audio-param.sh --list <plugin>                # show all params of plugin
 #   audio-param.sh --apply <plugin>               # re-apply saved params live
 #   audio-param.sh --apply-all                    # re-apply everything live
+#   audio-param.sh --nr-bypass on|off             # force noise reduction off (not saved)
 #   audio-param.sh --reset <plugin>               # reset plugin to defaults
 #   audio-param.sh --reset-all                    # reset whole config
 #
@@ -169,6 +170,8 @@ fi
 
 CONFIG_DIR="${XDG_CONFIG_HOME:-$HOME/.config}/chromashell/audio/runtime"
 CONFIG_FILE="$CONFIG_DIR/audio.json"
+# Marker on tmpfs: while present, noise reduction is forced off without touching audio.json
+NR_BYPASS="${XDG_RUNTIME_DIR:-/tmp}/chromashell-nr-bypass"
 DEFAULT_CONFIG="${CHROMASHELL_DEFAULT_CONFIG:-$(dirname "$(readlink -f "$0")")/audio.json.default}"
 
 usage() {
@@ -306,7 +309,7 @@ apply_plugin() {
         local enabled att name
         enabled="$(echo "$params" | "$JQ" -r '.enabled // 1')"
         att="$(echo "$params" | "$JQ" -r '.attenuation // 100')"
-        if [[ "${enabled%.*}" == "0" ]]; then
+        if [[ "${enabled%.*}" == "0" || -e "$NR_BYPASS" ]]; then
             pairs+=("Attenuation Limit (dB)" "0.0")
         else
             pairs+=("Attenuation Limit (dB)" "$att")
@@ -363,6 +366,17 @@ case "${1:-}" in
             node_for_plugin "$plugin" > /dev/null 2>&1 || continue
             apply_plugin "$plugin"
         done < <("$JQ" -r 'keys_unsorted[]' "$CONFIG_FILE")
+        ;;
+
+    --nr-bypass)
+        require_config
+        case "${2:-}" in
+            on)  touch "$NR_BYPASS" ;;
+            off) rm -f "$NR_BYPASS" ;;
+            *)   echo "Usage: $0 --nr-bypass on|off" >&2; exit 1 ;;
+        esac
+        apply_plugin mic-nr
+        apply_plugin chat-nr
         ;;
 
     --reset)
