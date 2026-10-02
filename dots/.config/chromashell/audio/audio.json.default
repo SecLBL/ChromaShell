@@ -1,4 +1,9 @@
 {
+  "mic-trim": {
+    "params": {
+      "trim": 0
+    }
+  },
   "mic-nr": {
     "params": {
       "enabled": 1,
@@ -38,6 +43,16 @@
       "mk":   1.41254
     }
   },
+  "mic-lim": {
+    "params": {
+      "enabled": 1,
+      "th":    0.89125,
+      "boost": 0,
+      "lk":    5,
+      "at":    5,
+      "rt":    5
+    }
+  },
   "chat-nr": {
     "params": {
       "enabled": 1,
@@ -60,6 +75,16 @@
       "cr":   3.54,
       "kn":   0.55208,
       "mk":   1.41254
+    }
+  },
+  "chat-lim": {
+    "params": {
+      "enabled": 1,
+      "th":    0.89125,
+      "boost": 0,
+      "lk":    5,
+      "at":    5,
+      "rt":    5
     }
   },
   "general-eq": {

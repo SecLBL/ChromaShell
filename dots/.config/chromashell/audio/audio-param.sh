@@ -10,7 +10,8 @@
 #   audio-param.sh --reset <plugin>               # reset plugin to defaults
 #   audio-param.sh --reset-all                    # reset whole config
 #
-# Plugins:  mic-gate | mic-nr | mic-comp | chat-nr | chat-comp | general-eq
+# Plugins:  mic-trim | mic-nr | mic-gate | mic-comp | mic-lim |
+#           chat-nr | chat-comp | chat-lim | general-eq
 #
 # Backend: all plugins run inside native PipeWire filter-chain graphs
 # (chains.conf, hosted by chromashell-audio.service). Live updates go through
@@ -21,12 +22,19 @@
 # start-audio.sh re-applies everything after the next service start anyway.
 #
 # Plugin -> chain node / filter name:
+#   mic-trim    mic_chain_in      trim:   (x42 Stereo Balance, used as input trim)
 #   mic-gate    mic_chain_in      gate:   (LSP Gate Stereo, LV2 symbols)
 #   mic-nr      mic_chain_in      nr:     (DeepFilterNet, LADSPA controls)
 #   mic-comp    mic_chain_in      comp:   (LSP Compressor Stereo)
+#   mic-lim     mic_chain_in      lim:    (LSP Limiter Stereo)
 #   chat-nr     chat_chain_in     nr:
 #   chat-comp   chat_chain_in     comp:
+#   chat-lim    chat_chain_in     lim:
 #   general-eq  general_chain_in  eq:     (fil4 Parametric EQ)
+#
+# ── mic-trim (x42 Stereo Balance) ───────────────────────────────────────────
+#
+#   trim Trim/Gain           dB      Level before noise reduction   (-20–+20)
 #
 # ── mic-gate (LSP Gate Stereo) ──────────────────────────────────────────────
 #
@@ -103,6 +111,20 @@
 #
 #   All linear gain values: linear = 10^(dB/20)  e.g. -20dB → 0.1, +6dB → 2.0
 #
+# ── mic-lim / chat-lim (LSP Limiter Stereo) ────────────────────────────────
+#
+#   enabled Enable          0/1     0 = bypassed
+#   th    Threshold         linear  Output ceiling                  (0.004–1.0)
+#   boost Gain boost        0/1     Raise output up to the threshold
+#   knee  Knee              linear  Soft-knee level                 (0.25–3.98)
+#   lk    Lookahead         ms      Adds the same amount of latency (0.1–20)
+#   at    Attack time       ms                                      (0.25–20)
+#   rt    Release time      ms                                      (0.25–20)
+#   alr   Auto level reg.   0/1     Automatic level regulation
+#   slink Stereo linking    %                                       (0–100)
+#   g_in  Input gain        linear  Pre-gain before limiting        (0–1000)
+#   g_out Output gain       linear  Post-gain after limiting        (0–1000)
+#
 # ── general-eq (fil4 Parametric EQ Stereo — x42-plugins) ───────────────────
 #
 #   Master
@@ -178,8 +200,8 @@ update_config() {
 
 node_for_plugin() {
     case "$1" in
-        mic-gate|mic-nr|mic-comp) echo "mic_chain_in" ;;
-        chat-nr|chat-comp)        echo "chat_chain_in" ;;
+        mic-trim|mic-gate|mic-nr|mic-comp|mic-lim) echo "mic_chain_in" ;;
+        chat-nr|chat-comp|chat-lim) echo "chat_chain_in" ;;
         general-eq)               echo "general_chain_in" ;;
         *) return 1 ;;
     esac
@@ -187,9 +209,11 @@ node_for_plugin() {
 
 prefix_for_plugin() {
     case "$1" in
+        mic-trim)           echo "trim" ;;
         mic-gate)           echo "gate" ;;
         mic-nr|chat-nr)     echo "nr" ;;
         mic-comp|chat-comp) echo "comp" ;;
+        mic-lim|chat-lim)   echo "lim" ;;
         general-eq)         echo "eq" ;;
         *) return 1 ;;
     esac

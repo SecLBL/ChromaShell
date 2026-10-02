@@ -55,6 +55,17 @@ if ! "$JQ" empty "$CONFIG_FILE" 2>/dev/null; then
     exit 1
 fi
 
+# Fill in plugins/params added by newer defaults; saved values always win.
+if [[ -f "$DEFAULT_CONFIG" ]]; then
+    merged="$(mktemp "${CONFIG_FILE}.XXXXXX")"
+    if "$JQ" -s '.[0] * .[1]' "$DEFAULT_CONFIG" "$CONFIG_FILE" > "$merged"; then
+        mv "$merged" "$CONFIG_FILE"
+    else
+        rm -f "$merged"
+        echo "Warning: could not merge new defaults into $CONFIG_FILE"
+    fi
+fi
+
 # ── Start the chains instance ───────────────────────────────────────────────
 
 "$PIPEWIRE" -c "$CHAINS_CONF" &
