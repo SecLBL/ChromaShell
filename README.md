@@ -68,3 +68,7 @@ This wouldn't exist without:
 - **End-4 / [illogical-impulse](https://github.com/end-4/dots-hyprland)** — for
   the ideas and inspiration that got me into this whole rabbit hole in the first
   place.
+
+## License
+
+[GPL-3.0](LICENSE), same as the Caelestia projects this builds on.
