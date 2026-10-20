@@ -1,4 +1,4 @@
--- Load colour scheme (default shipped in dotfiles, overwritten by caelestia-cli on theme change)
+-- Load colour scheme (pre-loaded with scheme/default.lua fallback in hyprland.lua)
 local sc = require("scheme.current")
 
 -- Pre-compute colour strings (mirrors upstream variables.conf pattern)
