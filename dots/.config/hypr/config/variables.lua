@@ -6,8 +6,7 @@ return {
     -- terminal/fileManager: fallback only; live value comes from shell.json general.apps (reload-bake, see keybindings.lua).
     terminal    = "kitty",
     fileManager = "thunar",
-    browser     = "librewolf",
-    editor      = "codium",
+    -- browser/editor: set by the flake (generated/*.lua); unset = no bind
 
     -- Touchpad
     touchpadDisableTyping = true,

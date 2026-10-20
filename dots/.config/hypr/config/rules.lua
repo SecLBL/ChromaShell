@@ -11,11 +11,13 @@ hl.window_rule({ match={ class="foot|imv|swappy" }, opacity="1.0 override", no_b
 hl.window_rule({ match={ class="org\\.quickshell" }, opacity="1.0 override" })
 
 -- Full opacity + no blur for video playback
-hl.window_rule({
-    match   = { class="(?i)^" .. v.browser .. ".*", title=".*(YouTube|Twitch|Netflix|Prime Video|S\\.to|mp4).*" },
-    opacity = "1.0 override",
-    no_blur = true,
-})
+if v.browser then
+    hl.window_rule({
+        match   = { class="(?i)^" .. v.browser .. ".*", title=".*(YouTube|Twitch|Netflix|Prime Video|S\\.to|mp4).*" },
+        opacity = "1.0 override",
+        no_blur = true,
+    })
+end
 hl.window_rule({ match={ class="^(mpv)$" },  opacity="1.0 override", no_blur=true })
 hl.window_rule({ match={ class="^(vlc)$" },  opacity="1.0 override", no_blur=true })
 

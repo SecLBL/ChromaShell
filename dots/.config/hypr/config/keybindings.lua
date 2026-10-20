@@ -19,8 +19,21 @@ local function shell_app(role, fallback)
     return fallback
 end
 
-local termCmd     = "app2unit -- " .. shell_app("terminal", v.terminal)
-local explorerCmd = "app2unit -- " .. shell_app("explorer", v.fileManager)
+-- app2unit launch via desktop ID when <id>.desktop exists (unit name matches for task managers),
+-- else the plain command. Resolved at reload, like shell_app.
+local function app(cmd, id)
+    id = id or cmd
+    local dirs = (os.getenv("XDG_DATA_HOME") or (os.getenv("HOME") .. "/.local/share")) .. ":" ..
+                 (os.getenv("XDG_DATA_DIRS") or "/usr/local/share:/usr/share")
+    for dir in dirs:gmatch("[^:]+") do
+        local h = io.open(dir .. "/applications/" .. id .. ".desktop")
+        if h then h:close(); return "app2unit -- " .. id .. ".desktop" end
+    end
+    return "app2unit -- " .. cmd
+end
+
+local termCmd     = app(shell_app("terminal", v.terminal))
+local explorerCmd = app(shell_app("explorer", v.fileManager))
 
 hl.define_submap("global", "global", function()
 
@@ -170,11 +183,11 @@ hl.define_submap("global", "global", function()
     -- terminal/fileManager resolved from shell.json (general.apps), baked at reload (see shell_app).
     hl.bind(M .. " + Return",                 hl.dsp.exec_cmd(termCmd))
     hl.bind(v.kbTerminal,                      hl.dsp.exec_cmd(termCmd))
-    hl.bind(v.kbBrowser,                       hl.dsp.exec_cmd("app2unit -- " .. v.browser))
-    hl.bind(v.kbEditor,                        hl.dsp.exec_cmd("app2unit -- " .. v.editor))
+    if v.browser then hl.bind(v.kbBrowser, hl.dsp.exec_cmd(app(v.browser, v.browserId))) end
+    if v.editor  then hl.bind(v.kbEditor,  hl.dsp.exec_cmd(app(v.editor,  v.editorId)))  end
     hl.bind(v.kbFileExplorer,                  hl.dsp.exec_cmd(explorerCmd))
-    hl.bind("CTRL + ALT + Escape",            hl.dsp.exec_cmd("app2unit -- qps"))
-    hl.bind("CTRL + ALT + V",                hl.dsp.exec_cmd("app2unit -- pavucontrol"))
+    hl.bind("CTRL + ALT + Escape",            hl.dsp.exec_cmd(app("qps")))
+    hl.bind("CTRL + ALT + V",                hl.dsp.exec_cmd(app("pavucontrol", "org.pulseaudio.pavucontrol")))
 
     -- ── Screenshot ────────────────────────────────────────────────────────────
     hl.bind("Print",                           hl.dsp.global("caelestia:screenshot"),         { locked=true })
