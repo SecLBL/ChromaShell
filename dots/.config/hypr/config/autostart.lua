@@ -7,12 +7,9 @@ hl.on("hyprland.start", function()
     hl.dispatch(hl.dsp.submap("global"))
 
     -- Core components (gnome-keyring forks itself, a service unit would kill it)
+    -- Polkit agent: HM services.polkit-gnome; idle: caelestia shell (shell.json idle)
     hl.exec_cmd("gnome-keyring-daemon --start --components=secrets")
-    bg("polkit-gnome-authentication-agent-1")
-    bg("hypridle")
     hl.exec_cmd("trash-empty 30")
-    hl.exec_cmd("/usr/lib/geoclue-2.0/demos/agent")
-    bg("sh -c 'sleep 1 && exec gammastep'")
     hl.exec_cmd("dbus-update-activation-environment --all")
     hl.exec_cmd("sleep 1 && dbus-update-activation-environment --systemd WAYLAND_DISPLAY XDG_CURRENT_DESKTOP")
 
@@ -25,7 +22,6 @@ hl.on("hyprland.start", function()
     bg("mpris-proxy")
 
     -- Shell
-    hl.exec_cmd("app2unit -s s -- qs -c ChromaShell")
     bg("caelestia resizer -d")
 
     -- Cursor

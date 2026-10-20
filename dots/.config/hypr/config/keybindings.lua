@@ -52,8 +52,8 @@ hl.define_submap("global", "global", function()
     hl.bind(v.kbRestoreLock,                 hl.dsp.global("caelestia:lock"),                 { locked=true })
 
     -- Kill / restart caelestia shell
-    hl.bind("CTRL + SUPER + SHIFT + R",     hl.dsp.exec_cmd("qs -c caelestia kill"),         { release=true })
-    hl.bind("CTRL + SUPER + ALT + R",       hl.dsp.exec_cmd("qs -c caelestia kill; sleep .1; caelestia shell -d"), { release=true })
+    hl.bind("CTRL + SUPER + SHIFT + R",     hl.dsp.exec_cmd("systemctl --user stop caelestia"),    { release=true })
+    hl.bind("CTRL + SUPER + ALT + R",       hl.dsp.exec_cmd("systemctl --user restart caelestia"), { release=true })
 
     -- ── Brightness ────────────────────────────────────────────────────────────
     hl.bind("XF86MonBrightnessUp",           hl.dsp.global("caelestia:brightnessUp"),        { locked=true, repeating=true })
