@@ -5,5 +5,6 @@ export QT_AUTO_SCREEN_SCALE_FACTOR='1'
 
 # ###### app2unit Integration ######
 # service (not scope) so apps are reparented to systemd instead of Hyprland
+# a=app.slice: task managers (Mission Center, Resources) only scan direct children of app.slice
 export APP2UNIT_TYPE='service'
-export APP2UNIT_SLICES='a=app-graphical.slice b=background-graphical.slice s=session-graphical.slice'
+export APP2UNIT_SLICES='a=app.slice b=background-graphical.slice s=session-graphical.slice'
