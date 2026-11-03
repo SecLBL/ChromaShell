@@ -28,7 +28,7 @@ hl.animation({ leaf="fadeLayers",        enabled=true, speed=5, bezier="standard
 hl.animation({ leaf="windowsIn",         enabled=true, speed=5, bezier="emphasizedDecel" })
 hl.animation({ leaf="windowsOut",        enabled=true, speed=3, bezier="emphasizedAccel" })
 hl.animation({ leaf="windowsMove",       enabled=true, speed=6, bezier="standard" })
-hl.animation({ leaf="workspaces",        enabled=true, speed=5, bezier="standard" })
+hl.animation({ leaf="workspaces",        enabled=true, speed=5, bezier="standard", style="slidefade 15%" }) -- full slides read like a canvas pan
 hl.animation({ leaf="specialWorkspace",  enabled=true, speed=4, bezier="specialWorkSwitch", style="slidefadevert 15%" })
 hl.animation({ leaf="fade",              enabled=true, speed=6, bezier="standard" })
 hl.animation({ leaf="fadeDim",           enabled=true, speed=6, bezier="standard" })
@@ -65,7 +65,7 @@ hl.config({
         allow_tearing     = true,
         snap = {
             enabled      = true,
-            window_gap   = 4,
+            window_gap   = 20,
             monitor_gap  = 5,
             respect_gaps = true,
         },

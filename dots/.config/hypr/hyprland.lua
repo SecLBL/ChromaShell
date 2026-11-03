@@ -16,6 +16,7 @@ require("config.variables")         -- upstream
 pcall(require, "custom.variables")  -- custom (writable, created once by flake, never overwritten)
 pcall(require, "generated.editor")  -- flake-managed: sets v.editor from editor.app option
 pcall(require, "generated.browser") -- flake-managed: sets v.browser from browser.app option
+pcall(require, "generated.canvas")  -- flake-managed: loads the canvas plugin built for this Hyprland
 
 -- ChromaShell upstream
 require("config.env")

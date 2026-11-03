@@ -31,6 +31,10 @@ hl.window_rule({ match={ class="(steam_app_(default|[0-9]+))|gamescope" }, opaci
 -- Center all floating windows (except xwayland popups)
 hl.window_rule({ match={ float=true, xwayland=false }, center=true })
 
+-- Apps re-maximize themselves on their own (Chromium after leaving fullscreen, kitty from
+-- its saved state). Maximize stays available through keybinds, only client requests are ignored
+hl.window_rule({ match={ class=".*" }, suppress_event="maximize" })
+
 -- Simple float
 hl.window_rule({ match={ class="yad|zenity|wev|feh|imv" },                   float=true })
 hl.window_rule({ match={ class="org\\.gnome\\.FileRoller|file-roller" },        float=true })

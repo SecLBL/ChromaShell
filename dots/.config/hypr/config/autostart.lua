@@ -24,6 +24,9 @@ hl.on("hyprland.start", function()
     -- Shell
     bg("caelestia resizer -d")
 
+    -- Canvas: new windows follow their workspace's mode (config/canvas.lua)
+    bg("python3 " .. os.getenv("HOME") .. "/.config/hypr/scripts/canvas/auto_layout_mode.py")
+
     -- Cursor
     hl.exec_cmd("hyprctl setcursor " .. _v.cursorTheme .. " " .. _v.cursorSize)
     hl.exec_cmd('gsettings set org.gnome.desktop.interface cursor-theme "' .. _v.cursorTheme .. '"')

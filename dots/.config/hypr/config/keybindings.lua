@@ -1,5 +1,6 @@
 local v = require("config.variables")
 local M = v.mainMod
+local canvas = require("config.canvas")
 
 local wsaction = "fish ~/.config/hypr/scripts/wsaction.fish"
 
@@ -51,8 +52,8 @@ end)
 -- ── Window — mouse drag / resize (Außerhalb der global Submap) ─────────────
 hl.bind(M .. " + mouse:272",              hl.dsp.window.drag(),                           { mouse=true, submap_universal=true })
 hl.bind(v.kbMoveWindow,                    hl.dsp.window.drag(),                           { mouse=true, submap_universal=true })
-hl.bind(M .. " + mouse:273",              hl.dsp.window.resize(),                         { mouse=true, submap_universal=true })
 hl.bind(v.kbResizeWindow,                  hl.dsp.window.resize(),                         { mouse=true, submap_universal=true })
+-- Super + right mouse grabs the canvas (below) instead of resizing; kbResizeWindow still resizes
 
 hl.define_submap("global", "global", function()
     -- ── Caelestia shell ───────────────────────────────────────────────────────
@@ -135,11 +136,17 @@ hl.define_submap("global", "global", function()
     hl.bind(v.kbUngroup,                       hl.dsp.group.move_window())
     hl.bind(M .. " + SHIFT + Comma",          hl.dsp.group.lock_active("toggle"))
 
-    -- ── Window — focus ────────────────────────────────────────────────────────
-    hl.bind(M .. " + left",                   hl.dsp.focus({ direction="left" }))
-    hl.bind(M .. " + right",                  hl.dsp.focus({ direction="right" }))
-    hl.bind(M .. " + up",                     hl.dsp.focus({ direction="up" }))
-    hl.bind(M .. " + down",                   hl.dsp.focus({ direction="down" }))
+    -- ── Window — focus (canvas: next window that way, panned to the centre) ───
+    for _, d in ipairs({ "left", "right", "up", "down" }) do
+        hl.bind(M .. " + " .. d,                  function() canvas.focus(d) end)
+    end
+
+    -- ── Canvas (config/canvas.lua) ────────────────────────────────────────────
+    hl.bind(v.kbCanvasToggle,                  function() canvas.toggle() end)
+    hl.bind(v.kbCanvasGrab,                    function() canvas.grab_start() end)
+    -- the button can come up with or without Super still held
+    hl.bind(v.kbCanvasGrab,                    function() canvas.grab_stop() end,             { release=true, non_consuming=true })
+    hl.bind(v.kbCanvasGrab:match("[^%s+]+$"),  function() canvas.grab_stop() end,             { release=true, non_consuming=true })
 
     -- ── Window — move (keyboard) ──────────────────────────────────────────────
     hl.bind(M .. " + SHIFT + left",           hl.dsp.window.move({ direction="left" }))

@@ -70,6 +70,8 @@ return {
     kbWindowFullscreen         = M .. " + F",
     kbWindowBorderedFullscreen = M .. " + ALT + F",
     kbToggleWindowFloating     = M .. " + ALT + Space",
+    kbCanvasToggle             = M .. " + A",          -- workspace: tiling <-> canvas (config/canvas.lua)
+    kbCanvasGrab               = M .. " + mouse:273",  -- hold to grab and pan the canvas
     kbCloseWindow              = M .. " + Q",
 
     -- Keybinds — special workspace toggles
