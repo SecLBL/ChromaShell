@@ -85,7 +85,24 @@ def normalize_address(addr):
     return addr if addr.startswith('0x') else f'0x{addr}'
 
 
+# ChromaShell: on/off from the shell config (Nexus: ChromaShell Extras > Canvas),
+# read per window so a change applies right away
+SHELL_CONFIG = os.path.join(os.environ.get('XDG_CONFIG_HOME') or os.path.expanduser('~/.config'),
+                            'caelestia', 'shell.json')
+
+
+def enabled():
+    try:
+        with open(SHELL_CONFIG) as f:
+            return json.load(f).get('general', {}).get('canvas', {}).get('autoLayout', True) is not False
+    except (OSError, ValueError):
+        return True
+
+
 def decide_and_apply(new_address):
+    if not enabled():
+        return
+
     # La espera con retry (que puede tardar hasta ~0.2s) se hace FUERA
     # del lock: no tiene sentido bloquear a floating_tile_toggle.py
     # mientras esperamos a que la ventana aparezca en "clients -j".

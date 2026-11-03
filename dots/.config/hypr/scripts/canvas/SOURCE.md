@@ -3,7 +3,7 @@ adapted from https://github.com/sarodscommits/IridumShell-IridiumDots-BETA (conf
 Driven from `config/canvas.lua` (toggle, focus, grab-to-pan).
 
 - `floating_tile_toggle.py`, `hypr_ipc.py`: unchanged
-- `auto_layout_mode.py`: never demotes floating -> tiled (tiling is the default here, floating comes from window rules)
+- `auto_layout_mode.py`: never demotes floating -> tiled (tiling is the default here, floating comes from window rules); off via the shell config (`general.canvas.autoLayout`)
 - `navigate_windows.py`: monitor centre respects transform/scale, browsers get focused too, parallax through the canvas plugin
 - dropped:
   - `infinite_desktop_core.py`: read every keyboard/mouse through evdev (input group). Panning is `canvas.grab_*` in Lua now: Super+right drag, windows stick to the cursor
