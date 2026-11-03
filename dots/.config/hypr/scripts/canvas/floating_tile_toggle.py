@@ -566,14 +566,15 @@ def main():
         floating = get_floating_windows(workspace_id)
         if canvas_active() and (floating or get_tiled_windows(workspace_id)):
             canvas_prepare()
-        if floating:
+        # ChromaShell: "tile" / "float" force the direction (the workspace's stored
+        # mode, config/canvas.lua), so one floating dialog can't turn the toggle around
+        direction = sys.argv[1] if len(sys.argv) > 1 else ("tile" if floating else "float")
+        if direction == "tile" and floating:
             tile_floating_windows(workspace_id)
+        elif direction == "float" and get_tiled_windows(workspace_id):
+            restore_floating_windows(workspace_id)
         else:
-            tiled = get_tiled_windows(workspace_id)
-            if tiled:
-                restore_floating_windows(workspace_id)
-            else:
-                print("No hay ventanas en el workspace activo.")
+            print("Nada que cambiar en el workspace activo.")
     finally:
         fcntl.flock(lock_fd, fcntl.LOCK_UN)
         lock_fd.close()

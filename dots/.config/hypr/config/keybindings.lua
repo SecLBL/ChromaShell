@@ -177,7 +177,7 @@ hl.define_submap("global", "global", function()
     hl.bind(v.kbPinWindow,                     hl.dsp.window.pin())
     hl.bind(v.kbWindowFullscreen,              hl.dsp.window.fullscreen(0))
     hl.bind(v.kbWindowBorderedFullscreen,      hl.dsp.window.fullscreen(1))
-    hl.bind(v.kbToggleWindowFloating,          hl.dsp.window.float({ action="toggle" }))
+    hl.bind(v.kbToggleWindowFloating,          function() canvas.float_toggle() end)  -- floating size at the cursor
     hl.bind(v.kbCloseWindow,                   hl.dsp.window.close())
 
     -- ── Special workspace toggles ─────────────────────────────────────────────

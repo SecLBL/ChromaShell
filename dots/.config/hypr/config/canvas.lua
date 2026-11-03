@@ -1,11 +1,15 @@
 -- ══════════════════════════════════════════
 --  Canvas: per-workspace floating mode with panning
 -- ══════════════════════════════════════════
--- A workspace is a canvas while most of its windows float (same rule as
--- scripts/canvas/auto_layout_mode.py, the bar's mode indicator and the wallpaper
--- parallax). Scripts adapted from Iridium, see scripts/canvas/SOURCE.md.
+-- Each workspace has a stored mode, tiling (default) or canvas, also for empty
+-- workspaces, in $XDG_RUNTIME_DIR/canvas-modes.json ({"<ws id>": true} per canvas).
+-- That file is the only copy: canvas.toggle() writes it, scripts/canvas/auto_layout_mode.py
+-- follows manual float changes (all windows floating -> canvas, all tiled -> tiling),
+-- the bar's mode indicator watches it. Survives config reloads, not a Hyprland restart.
+-- Scripts adapted from Iridium, see scripts/canvas/SOURCE.md.
 --
---   canvas.toggle()          tiling <-> canvas for the active workspace (Super+A, bar indicator)
+--   canvas.toggle()          tiling <-> canvas for the active workspace (Super+A, bar indicator):
+--                            all its windows float / tile along
 --   canvas.focus(dir)        canvas: next window that way, panned to the centre; tiling: normal focus
 --   canvas.grab_start/stop() hold Super+right mouse: the windows stick to the cursor
 --   canvas.hold(ws, on)      no move animation for a canvas being panned from outside (bar preview)
@@ -35,14 +39,81 @@ local function floating(ws)
     return out
 end
 
+-- ── Mode per workspace ──
+M.modes_file = (os.getenv("XDG_RUNTIME_DIR") or "/tmp") .. "/canvas-modes.json"
+
+-- tostring(ws id) -> true for canvas workspaces; read fresh, python writes it too
+local function load_modes()
+    local modes = {}
+    local f = io.open(M.modes_file, "r")
+    if not f then return modes end
+    for id in f:read("a"):gmatch('"(%-?%d+)"%s*:%s*true') do modes[id] = true end
+    f:close()
+    return modes
+end
+
+-- in place, not via rename: the bar watches this file
+local function save_modes(modes)
+    local ids = {}
+    for id in pairs(modes) do ids[#ids + 1] = string.format('"%s":true', id) end
+    local f = io.open(M.modes_file, "w")
+    if not f then return end
+    f:write("{" .. table.concat(ids, ",") .. "}\n")
+    f:close()
+end
+
+save_modes(load_modes()) -- exists from the start, so the bar can watch it
+
 function M.is_canvas(ws)
-    local all = hl.get_workspace_windows(ws)
-    local f = #floating(ws)
-    return f > 0 and f * 2 > #all
+    return load_modes()[tostring(ws)] == true
 end
 
 function M.toggle()
-    py("floating_tile_toggle.py")
+    local ws = hl.get_active_workspace()
+    if not ws then return end
+    local modes = load_modes()
+    local canvas = not modes[tostring(ws.id)]
+    modes[tostring(ws.id)] = canvas or nil
+    save_modes(modes)
+    if #hl.get_workspace_windows(ws.id) > 0 then
+        py("floating_tile_toggle.py", canvas and "float" or "tile")
+    end
+end
+
+-- ── Floating size ──
+-- Share of the monitor's free area a window gets when it starts floating; keep in
+-- line with NEW_SIZE in scripts/canvas/auto_layout_mode.py (new canvas windows).
+M.float_size = { 0.5, 0.6 }
+
+-- M.float_size of the monitor, centred on the cursor, inside the monitor's free area
+function M.float_geometry(mon)
+    local w, h = mon.width, mon.height
+    if mon.transform % 2 == 1 then w, h = h, w end
+    local s = mon.scale or 1
+    local r = mon.reserved or {}
+    local left, top = mon.x + (r.left or 0), mon.y + (r.top or 0)
+    local right = mon.x + math.floor(w / s + 0.5) - (r.right or 0)
+    local bottom = mon.y + math.floor(h / s + 0.5) - (r.bottom or 0)
+    local nw = math.floor((right - left) * M.float_size[1] + 0.5)
+    local nh = math.floor((bottom - top) * M.float_size[2] + 0.5)
+    local c = hl.get_cursor_pos()
+    local x = math.min(math.max(math.floor(c.x - nw / 2 + 0.5), left), right - nw)
+    local y = math.min(math.max(math.floor(c.y - nh / 2 + 0.5), top), bottom - nh)
+    return x, y, nw, nh
+end
+
+-- kbToggleWindowFloating: a window that starts floating gets the floating size at the cursor
+function M.float_toggle()
+    local w = hl.get_active_window()
+    if not w then return end
+    local target, was_floating = "address:" .. w.address, w.floating
+    hl.dispatch(hl.dsp.window.float({ action = "toggle", window = target }))
+    if was_floating then return end -- now tiled
+    local mon = w.monitor or hl.get_active_monitor()
+    if not mon then return end
+    local x, y, nw, nh = M.float_geometry(mon)
+    hl.dispatch(hl.dsp.window.resize({ window = target, x = nw, y = nh, relative = false }))
+    hl.dispatch(hl.dsp.window.move({ window = target, x = x, y = y, relative = false }))
 end
 
 function M.focus(dir)

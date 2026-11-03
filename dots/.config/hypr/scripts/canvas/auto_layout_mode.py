@@ -2,6 +2,10 @@
 """
 auto_layout_mode.py
 
+ChromaShell: a new window floats when its workspace is a canvas (stored mode,
+config/canvas.lua), sized and placed at the cursor. The majority rule below is
+Iridium's and no longer applies.
+
 Decide automaticamente floating vs mosaico para cada ventana NUEVA,
 segun cual sea el modo mayoritario entre las ventanas ya abiertas en
 el mismo workspace.
@@ -51,7 +55,32 @@ desktop_lock, solo reusa hypr_ipc.py para el dispatch.
 import sys, os, socket, subprocess, json, time
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from hypr_ipc import toggle_floating, desktop_lock
+from hypr_ipc import (desktop_lock, batch, hyprctl_json, toggle_floating_lua,
+                      resize_window_exact_lua, move_window_exact_lua)
+
+# ChromaShell: size of a new canvas window, share of its monitor (logical, without the bar)
+NEW_SIZE = (0.5, 0.6)  # keep in line with canvas.float_size (config/canvas.lua)
+
+
+def canvas_geometry(win):
+    """New canvas windows: NEW_SIZE of the monitor, centred on the cursor, kept inside
+    the monitor's free area. Without this they keep their brief tiled size and all
+    land on top of each other in the middle."""
+    mon = next((m for m in hyprctl_json(['monitors']) or [] if m.get('id') == win.get('monitor')), None)
+    pos = hyprctl_json(['cursorpos'])
+    if not mon or not pos:
+        return None
+    w, h = mon['width'], mon['height']
+    if mon.get('transform', 0) % 2:   # rotated 90/270
+        w, h = h, w
+    s = mon.get('scale') or 1.0
+    rl, rt, rr, rb = (mon.get('reserved') or [0, 0, 0, 0])[:4]
+    left, top = mon['x'] + rl, mon['y'] + rt
+    right, bottom = mon['x'] + round(w / s) - rr, mon['y'] + round(h / s) - rb
+    nw, nh = round((right - left) * NEW_SIZE[0]), round((bottom - top) * NEW_SIZE[1])
+    x = min(max(round(pos['x'] - nw / 2), left), right - nw)
+    y = min(max(round(pos['y'] - nh / 2), top), bottom - nh)
+    return x, y, nw, nh
 
 # Ventanas cuya clase no deberia entrar en el conteo ni ser tocada
 # (ajustar segun necesidad -- p.ej. paneles/overlays de quickshell que
@@ -99,6 +128,53 @@ def enabled():
         return True
 
 
+# ChromaShell: the workspace's stored mode (hypr config/canvas.lua), not a count of
+# floating windows, so empty workspaces can be canvases too
+MODES_FILE = os.path.join(os.environ.get('XDG_RUNTIME_DIR') or '/tmp', 'canvas-modes.json')
+
+
+def read_modes():
+    try:
+        with open(MODES_FILE) as f:
+            modes = json.load(f)
+        return modes if isinstance(modes, dict) else {}
+    except (OSError, ValueError):
+        return {}
+
+
+def is_canvas(ws_id):
+    return read_modes().get(str(ws_id)) is True
+
+
+def set_canvas(ws_id, canvas):
+    modes = read_modes()
+    if (modes.get(str(ws_id)) is True) == canvas:
+        return
+    if canvas:
+        modes[str(ws_id)] = True
+    else:
+        modes.pop(str(ws_id), None)
+    with open(MODES_FILE, 'w') as f:   # in place, not via rename: the bar watches this file
+        json.dump(modes, f)
+
+
+def sync_mode(address):
+    """A window was floated or tiled by hand: all windows of its workspace floating
+    -> canvas, all tiled -> tiling, mixed -> the mode stays (a canvas keeps a tiled
+    window, a tiling workspace a floating dialog)."""
+    clients = get_clients()
+    win = next((w for w in clients if w.get('address') == address), None)
+    if win is None:
+        return
+    ws_id = win.get('workspace', {}).get('id')
+    on_ws = [w for w in clients if w.get('workspace', {}).get('id') == ws_id]
+    floating = sum(1 for w in on_ws if w.get('floating'))
+    if floating == len(on_ws):
+        set_canvas(ws_id, True)
+    elif floating == 0:
+        set_canvas(ws_id, False)
+
+
 def decide_and_apply(new_address):
     if not enabled():
         return
@@ -137,28 +213,16 @@ def decide_and_apply(new_address):
         if ws_id is None:
             return
 
-        others = [w for w in clients
-                  if w.get('address') != new_address
-                  and w.get('workspace', {}).get('id') == ws_id
-                  and w.get('class', '') not in IGNORE_CLASSES]
-
-        if not others:
-            return  # primera ventana del workspace: se queda como la dejo el rule (floating)
-
-        floating_count = sum(1 for w in others if w.get('floating'))
-        tiled_count = len(others) - floating_count
-
-        if floating_count == tiled_count:
-            return  # empate: no se toca, gana el comportamiento por defecto (floating)
-
-        should_be_floating = floating_count > tiled_count
-        is_floating = bool(new_win.get('floating', False))
-
         # ChromaShell: tiling is the default and windows that open floating got
         # there via a window rule (dialogs, pavucontrol, ...), so only ever
-        # promote tiled -> floating, never demote.
-        if should_be_floating and not is_floating:
-            toggle_floating(new_address)
+        # promote tiled -> floating on canvas workspaces, never demote.
+        if is_canvas(ws_id) and not new_win.get('floating', False):
+            exprs = [toggle_floating_lua(new_address)]
+            geo = canvas_geometry(new_win)
+            if geo:
+                x, y, w, h = geo
+                exprs += [resize_window_exact_lua(w, h, new_address), move_window_exact_lua(x, y, new_address)]
+            batch(exprs)
 
 
 def listen_loop():
@@ -174,14 +238,17 @@ def listen_loop():
             buf += data.decode('utf-8', errors='ignore')
             while '\n' in buf:
                 line, buf = buf.split('\n', 1)
-                if not line.startswith('openwindow>>'):
+                if line.startswith('openwindow>>'):
+                    handler = decide_and_apply
+                elif line.startswith('changefloatingmode>>'):
+                    handler = sync_mode
+                else:
                     continue
-                payload = line[len('openwindow>>'):]
-                addr_raw = payload.split(',', 1)[0]
+                addr_raw = line.split('>>', 1)[1].split(',', 1)[0]
                 if not addr_raw:
                     continue
                 try:
-                    decide_and_apply(normalize_address(addr_raw))
+                    handler(normalize_address(addr_raw))
                 except Exception as e:
                     print(f"[auto_layout_mode] error procesando {line!r}: {e}", flush=True)
 
