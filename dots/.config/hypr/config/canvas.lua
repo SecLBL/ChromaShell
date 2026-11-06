@@ -85,7 +85,7 @@ end
 -- ── Floating size ──
 -- Share of the monitor's free area a window gets when it starts floating; keep in
 -- line with NEW_SIZE in scripts/canvas/auto_layout_mode.py (new canvas windows).
-M.float_size = { 0.5, 0.6 }
+M.float_size = { 0.5, 0.5 } -- of the free area's long side (width) and short side (height)
 
 -- height of the hyprbars title bar floating windows get, 0 without the plugin
 function M.bar()
@@ -102,12 +102,14 @@ local function monitor_area(mon)
     return w, h, mon.x + (r.left or 0), mon.y + (r.top or 0), mon.x + w - (r.right or 0), mon.y + h - (r.bottom or 0)
 end
 
--- M.float_size of the monitor, centred on the cursor (or the monitor, when the cursor
+-- M.float_size of the monitor, measured as if it stood landscape (a portrait monitor gets
+-- the same wide window, not a tall strip), centred on the cursor (or the monitor, when the cursor
 -- is elsewhere), inside the monitor's free area
 function M.float_geometry(mon)
     local w, h, left, top, right, bottom = monitor_area(mon)
-    local nw = math.floor((right - left) * M.float_size[1] + 0.5)
-    local nh = math.floor((bottom - top) * M.float_size[2] + 0.5)
+    local fw, fh = right - left, bottom - top
+    local nw = math.min(math.floor(math.max(fw, fh) * M.float_size[1] + 0.5), fw)
+    local nh = math.min(math.floor(math.min(fw, fh) * M.float_size[2] + 0.5), fh)
     local c = hl.get_cursor_pos()
     if c.x < mon.x or c.x >= mon.x + w or c.y < mon.y or c.y >= mon.y + h then
         c = { x = (left + right) / 2, y = (top + bottom) / 2 }

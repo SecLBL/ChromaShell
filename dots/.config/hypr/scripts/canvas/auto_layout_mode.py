@@ -58,8 +58,9 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from hypr_ipc import (desktop_lock, batch, hyprctl_json, bar_height, toggle_floating_lua,
                       resize_window_exact_lua, move_window_exact_lua)
 
-# ChromaShell: size of a new canvas window, share of its monitor (logical, without the bar)
-NEW_SIZE = (0.5, 0.6)  # keep in line with canvas.float_size (config/canvas.lua)
+# ChromaShell: size of a new canvas window, share of its monitor's free area: long side
+# (width) and short side (height), so portrait monitors get wide windows too
+NEW_SIZE = (0.5, 0.5)  # keep in line with canvas.float_size (config/canvas.lua)
 
 
 def canvas_geometry(win):
@@ -77,7 +78,8 @@ def canvas_geometry(win):
     rl, rt, rr, rb = (mon.get('reserved') or [0, 0, 0, 0])[:4]
     left, top = mon['x'] + rl, mon['y'] + rt
     right, bottom = mon['x'] + round(w / s) - rr, mon['y'] + round(h / s) - rb
-    nw, nh = round((right - left) * NEW_SIZE[0]), round((bottom - top) * NEW_SIZE[1])
+    fw, fh = right - left, bottom - top
+    nw, nh = min(round(max(fw, fh) * NEW_SIZE[0]), fw), min(round(min(fw, fh) * NEW_SIZE[1]), fh)
     cx, cy = pos['x'], pos['y']
     if not (mon['x'] <= cx < mon['x'] + round(w / s) and mon['y'] <= cy < mon['y'] + round(h / s)):
         # cursor on another monitor (window sent there by keybind): its free area's centre
