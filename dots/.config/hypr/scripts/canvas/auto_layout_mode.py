@@ -55,7 +55,7 @@ desktop_lock, solo reusa hypr_ipc.py para el dispatch.
 import sys, os, socket, subprocess, json, time
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from hypr_ipc import (desktop_lock, batch, hyprctl_json, toggle_floating_lua,
+from hypr_ipc import (desktop_lock, batch, hyprctl_json, bar_height, toggle_floating_lua,
                       resize_window_exact_lua, move_window_exact_lua)
 
 # ChromaShell: size of a new canvas window, share of its monitor (logical, without the bar)
@@ -78,9 +78,14 @@ def canvas_geometry(win):
     left, top = mon['x'] + rl, mon['y'] + rt
     right, bottom = mon['x'] + round(w / s) - rr, mon['y'] + round(h / s) - rb
     nw, nh = round((right - left) * NEW_SIZE[0]), round((bottom - top) * NEW_SIZE[1])
-    x = min(max(round(pos['x'] - nw / 2), left), right - nw)
-    y = min(max(round(pos['y'] - nh / 2), top), bottom - nh)
-    return x, y, nw, nh
+    cx, cy = pos['x'], pos['y']
+    if not (mon['x'] <= cx < mon['x'] + round(w / s) and mon['y'] <= cy < mon['y'] + round(h / s)):
+        # cursor on another monitor (window sent there by keybind): its free area's centre
+        cx, cy = (left + right) / 2, (top + bottom) / 2
+    x = min(max(round(cx - nw / 2), left), right - nw)
+    y = min(max(round(cy - nh / 2), top), bottom - nh)
+    bar = bar_height()   # the box holds the title bar above the window too
+    return x, y + bar, nw, nh - bar
 
 # Ventanas cuya clase no deberia entrar en el conteo ni ser tocada
 # (ajustar segun necesidad -- p.ej. paneles/overlays de quickshell que

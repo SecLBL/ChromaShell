@@ -70,6 +70,15 @@ def hyprctl_json(args, timeout=2):
     return json.loads(r.stdout) if r.stdout.strip() else None
 
 
+def bar_height():
+    """ChromaShell: height of the hyprbars title bar floating windows get (it sits
+    above the window), 0 when the plugin isn't loaded."""
+    try:
+        return int((hyprctl_json(["getoption", "plugin:hyprbars:bar_height"]) or {}).get("int", 0))
+    except (ValueError, AttributeError):
+        return 0
+
+
 # ─────────────────────────────────────────────────────────────
 # CONDICION DE CARRERA REAL (encontrada 2026-07-29): varios scripts
 # (peek_window.py, focus_window_from_taskbar.py, navigate_windows.py)

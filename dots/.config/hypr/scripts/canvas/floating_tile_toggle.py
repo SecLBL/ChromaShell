@@ -91,7 +91,7 @@ import fcntl
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from hypr_ipc import (hyprctl_json, toggle_floating_lua, move_window_exact_lua,
                        resize_window_exact_lua, focus_window_lua, move_window_tiled_lua,
-                       batch, desktop_lock)
+                       batch, desktop_lock, bar_height)
 RUNTIME_DIR = os.environ.get("XDG_RUNTIME_DIR") or "/tmp"  # per-user; /tmp is shared between users
 
 LOCK_FILE  = os.path.join(RUNTIME_DIR, "floating_tile_toggle.lock")
@@ -523,8 +523,10 @@ def restore_floating_windows(workspace_id):
                 w2, h2 = pos.get("w"), pos.get("h")
                 origen = "original"
             else:
-                x, y = w["at"][0], w["at"][1]
-                w2, h2 = w["size"][0], w["size"][1]
+                # ChromaShell: keep the tiled slot, title bar included
+                bar = bar_height()
+                x, y = w["at"][0], w["at"][1] + bar
+                w2, h2 = w["size"][0], w["size"][1] - bar
                 origen = "mosaico"
             if w2 and h2:
                 resize_exprs.append(resize_window_exact_lua(w2, h2, addr))

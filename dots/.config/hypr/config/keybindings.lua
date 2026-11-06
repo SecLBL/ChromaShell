@@ -147,6 +147,11 @@ hl.define_submap("global", "global", function()
     -- the button can come up with or without Super still held
     hl.bind(v.kbCanvasGrab,                    function() canvas.grab_stop() end,             { release=true, non_consuming=true })
     hl.bind(v.kbCanvasGrab:match("[^%s+]+$"),  function() canvas.grab_stop() end,             { release=true, non_consuming=true })
+    -- watch the Super+left window drag (bound above), a window dragged to another
+    -- workspace takes on its mode on release
+    hl.bind(M .. " + mouse:272",              function() canvas.drag_start() end,            { non_consuming=true })
+    hl.bind(M .. " + mouse:272",              function() canvas.drag_stop() end,             { release=true, non_consuming=true })
+    hl.bind("mouse:272",                       function() canvas.drag_stop() end,             { release=true, non_consuming=true })
 
     -- ── Window — move (keyboard) ──────────────────────────────────────────────
     hl.bind(M .. " + SHIFT + left",           hl.dsp.window.move({ direction="left" }))

@@ -24,7 +24,7 @@ return {
     blurInputMethods = true,
     blurSize         = 6,
     blurPasses       = 2,
-    blurXray         = true,
+    blurXray         = false,
 
     -- Shadow
     shadowEnabled     = true,
