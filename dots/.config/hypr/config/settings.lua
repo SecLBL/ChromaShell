@@ -66,7 +66,7 @@ hl.config({
         snap = {
             enabled      = true,
             window_gap   = 20,
-            monitor_gap  = 5,
+            monitor_gap  = 20, -- also the shell's edges (its reserved area)
             respect_gaps = true,
         },
     },
