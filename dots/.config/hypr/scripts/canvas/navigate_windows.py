@@ -14,7 +14,7 @@ import sys
 import os
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from hypr_ipc import (hyprctl_json, move_focus, move_window_exact_lua, focus_window,
+from hypr_ipc import (hyprctl_json, bar_height, move_focus, move_window_exact_lua, focus_window,
                        batch_async, desktop_lock, _load_peek_state, _save_peek_state, _run)
 
 # ChromaShell: Iridium never focused browsers here (only centred them); empty = focus everything
@@ -43,17 +43,22 @@ def get_monitor_center():
     monitors = hyprctl_json(["monitors"]) or []
     for m in monitors:
         if m.get("focused"):
-            # ChromaShell: width/height are the unrotated mode, logical size needs transform + scale
+            # ChromaShell: width/height are the unrotated mode, logical size needs transform + scale;
+            # the centre of the free area, without the shell's reserved edges
             w, h = m["width"], m["height"]
             if m.get("transform", 0) % 2:
                 w, h = h, w
             s = m.get("scale") or 1.0
-            return m["x"] + round(w / s) // 2, m["y"] + round(h / s) // 2
+            rl, rt, rr, rb = (m.get("reserved") or [0, 0, 0, 0])[:4]
+            return m["x"] + (rl + round(w / s) - rr) // 2, m["y"] + (rt + round(h / s) - rb) // 2
     return 960, 540
 
 
+BAR = bar_height()  # ChromaShell: the title bar above floating windows counts to their centre
+
+
 def get_window_center(w):
-    return w["at"][0] + w["size"][0] // 2, w["at"][1] + w["size"][1] // 2
+    return w["at"][0] + w["size"][0] // 2, w["at"][1] + (w["size"][1] - BAR) // 2
 
 
 def get_window_bounds(w):
@@ -157,7 +162,7 @@ def pan_to_window(floating, target_addr, center_x, center_y):
 
     tx0, ty0 = positions[target["address"]]
     tx = tx0 + target["size"][0] // 2
-    ty = ty0 + target["size"][1] // 2
+    ty = ty0 + (target["size"][1] - BAR) // 2
     dx = center_x - tx
     dy = center_y - ty
 
