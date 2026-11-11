@@ -66,12 +66,17 @@ end
 
 save_modes(load_modes()) -- exists from the start, so the bar can watch it
 
+-- the workspace in front: an open special workspace, else the active one
+local function front_ws()
+    return hl.get_active_special_workspace() or hl.get_active_workspace()
+end
+
 function M.is_canvas(ws)
     return load_modes()[tostring(ws)] == true
 end
 
 function M.toggle()
-    local ws = hl.get_active_workspace()
+    local ws = front_ws()
     if not ws then return end
     local modes = load_modes()
     local canvas = not modes[tostring(ws.id)]
@@ -261,7 +266,7 @@ hl.on("window.move_to_workspace", function(w, ws)
 end)
 
 function M.focus(dir)
-    local ws = hl.get_active_workspace()
+    local ws = front_ws()
     if ws and M.is_canvas(ws.id) then
         py("navigate_windows.py", dir)
     else
@@ -307,7 +312,7 @@ end
 
 function M.grab_start()
     if G.active then return end
-    local ws = hl.get_active_workspace()
+    local ws = front_ws()
     if not ws then return end
     G.ws = ws.id
     local c = hl.get_cursor_pos()

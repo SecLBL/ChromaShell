@@ -70,6 +70,16 @@ def hyprctl_json(args, timeout=2):
     return json.loads(r.stdout) if r.stdout.strip() else None
 
 
+def active_workspace_id():
+    """ChromaShell: the workspace in front on the focused monitor: an open special
+    workspace, else the active one (activeworkspace ignores specials)."""
+    mon = next((m for m in hyprctl_json(["monitors"]) or [] if m.get("focused")), None)
+    if mon and (mon.get("specialWorkspace") or {}).get("id"):
+        return mon["specialWorkspace"]["id"]
+    ws = hyprctl_json(["activeworkspace"])
+    return ws["id"] if ws else None
+
+
 def bar_height():
     """ChromaShell: height of the hyprbars title bar floating windows get (it sits
     above the window), 0 when the plugin isn't loaded."""

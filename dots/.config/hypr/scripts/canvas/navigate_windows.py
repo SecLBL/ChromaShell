@@ -14,7 +14,7 @@ import sys
 import os
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from hypr_ipc import (hyprctl_json, bar_height, move_focus, move_window_exact_lua, focus_window,
+from hypr_ipc import (hyprctl_json, bar_height, active_workspace_id, move_focus, move_window_exact_lua, focus_window,
                        batch_async, desktop_lock, _load_peek_state, _save_peek_state, _run)
 
 # ChromaShell: Iridium never focused browsers here (only centred them); empty = focus everything
@@ -190,10 +190,9 @@ def main():
     # -- ver la nota extensa en hypr_ipc.py sobre la condicion de
     # carrera que esto evita.
     with desktop_lock():
-        ws = hyprctl_json(["activeworkspace"])
-        if not ws:
+        workspace_id = active_workspace_id()  # ChromaShell: an open special workspace counts
+        if workspace_id is None:
             sys.exit(1)
-        workspace_id = ws["id"]
         global WORKSPACE_ID
         WORKSPACE_ID = workspace_id
 

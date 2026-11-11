@@ -171,8 +171,8 @@ def sync_mode(address):
     window, a tiling workspace a floating dialog)."""
     clients = get_clients()
     win = next((w for w in clients if w.get('address') == address), None)
-    if win is None:
-        return
+    if win is None or 'canvas_drag' in win.get('tags', []):
+        return  # gone, or floated by Hyprland for a drag (config/canvas.lua tags it)
     ws_id = win.get('workspace', {}).get('id')
     on_ws = [w for w in clients if w.get('workspace', {}).get('id') == ws_id]
     floating = sum(1 for w in on_ws if w.get('floating'))
