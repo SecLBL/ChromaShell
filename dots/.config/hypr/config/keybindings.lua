@@ -40,7 +40,7 @@ hl.define_submap("global", "global", function()
 
     -- ── Launcher (Super tap) ──────────────────────────────────────────────────
     hl.bind(M .. " + Super_L",               hl.dsp.global("caelestia:launcher"),          { non_consuming=true })
-    hl.bind(M,                               hl.dsp.global("caelestia:launcherInterrupt"),  { non_consuming=true, catch_all=true })
+    hl.bind("catchall",                      hl.dsp.global("caelestia:launcherInterrupt"),  { non_consuming=true, ignore_mods=true })  -- only fires when no other bind matched
     hl.bind(M .. " + mouse:272",             hl.dsp.global("caelestia:launcherInterrupt"),  { non_consuming=true, click=true })
     hl.bind(M .. " + mouse:273",             hl.dsp.global("caelestia:launcherInterrupt"),  { non_consuming=true, click=true })
     hl.bind(M .. " + mouse:274",             hl.dsp.global("caelestia:launcherInterrupt"),  { non_consuming=true, click=true })
