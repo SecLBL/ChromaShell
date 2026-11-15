@@ -190,6 +190,7 @@ hl.define_submap("global", "global", function()
     hl.bind(v.kbWindowBorderedFullscreen,      hl.dsp.window.fullscreen(1))
     hl.bind(v.kbToggleWindowFloating,          function() canvas.float_toggle() end)  -- floating size at the cursor
     hl.bind(v.kbCloseWindow,                   hl.dsp.window.close())
+    hl.bind(v.kbKillWindow,                    hl.dsp.window.kill())
 
     -- ── Special workspace toggles ─────────────────────────────────────────────
     hl.bind(v.kbSystemMonitor,                 hl.dsp.exec_cmd("caelestia toggle sysmon"))

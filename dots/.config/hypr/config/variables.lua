@@ -73,6 +73,7 @@ return {
     kbCanvasToggle             = M .. " + A",          -- workspace: tiling <-> canvas (config/canvas.lua)
     kbCanvasGrab               = M .. " + mouse:273",  -- hold to grab and pan the canvas
     kbCloseWindow              = M .. " + Q",
+    kbKillWindow               = M .. " + SHIFT + Q",  -- SIGKILL, for hung apps
 
     -- Keybinds — special workspace toggles
     kbSystemMonitor = "CTRL + SHIFT + Escape",
