@@ -215,6 +215,8 @@ hl.define_submap("global", "global", function()
     hl.bind(M .. " + ALT + R",               hl.dsp.exec_cmd("caelestia record -s"))
     hl.bind("CTRL + ALT + R",                hl.dsp.exec_cmd("caelestia record"))
     hl.bind(M .. " + SHIFT + ALT + R",        hl.dsp.exec_cmd("caelestia record -r"))
+    hl.bind(M .. " + ALT + C",               hl.dsp.exec_cmd("caelestia replay save"))
+    hl.bind(M .. " + SHIFT + ALT + C",        hl.dsp.exec_cmd("caelestia replay toggle"))
     hl.bind(M .. " + SHIFT + C",              hl.dsp.exec_cmd("hyprpicker -a"))
 
     -- ── Volume ────────────────────────────────────────────────────────────────
