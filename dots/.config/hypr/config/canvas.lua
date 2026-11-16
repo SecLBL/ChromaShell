@@ -257,8 +257,22 @@ function M.drag_stop()
     if D.moved then M.adapt(hl.get_window("address:" .. D.moved)) end
 end
 
+-- hyprbars title drags skip the binds above: the canvas plugin sees every drag, poll until release
+local function wait_drop(address)
+    D.moved = address
+    D.timer = D.timer or hl.timer(function()
+        if hl.plugin.canvas.dragging() then return end
+        D.timer:set_enabled(false)
+        if D.moved then M.adapt(hl.get_window("address:" .. D.moved)) end
+        D.moved = nil
+    end, { timeout = 50, type = "repeat" })
+    D.timer:set_enabled(true)
+end
+
 hl.on("window.move_to_workspace", function(w, ws)
-    if D.active then
+    if hl.plugin.canvas and hl.plugin.canvas.dragging() == w.address then
+        wait_drop(w.address)
+    elseif D.active then
         D.moved = w.address
     else
         M.adapt(w, ws)
