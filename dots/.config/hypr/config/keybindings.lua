@@ -61,6 +61,16 @@ hl.bind(v.kbResizeWindow,                  hl.dsp.window.resize(),              
 -- Super + right mouse grabs the canvas (below) instead of resizing; kbResizeWindow still resizes
 
 hl.define_submap("global", "global", function()
+    -- catchall only fires when no other bind matched, so Super combos interrupt the launcher themselves
+    local bind = hl.bind
+    hl.bind = function(key, ...)
+        bind(key, ...)
+        local opts = select(2, ...)
+        if key:upper():find("SUPER") and not (opts and opts.release) then
+            bind(key, hl.dsp.global("caelestia:launcherInterrupt"), { non_consuming=true })
+        end
+    end
+
     -- ── Caelestia shell ───────────────────────────────────────────────────────
     hl.bind(v.kbSession,                     hl.dsp.global("caelestia:session"))
     hl.bind(v.kbShowSidebar,                 hl.dsp.global("caelestia:sidebar"))
@@ -235,4 +245,5 @@ hl.define_submap("global", "global", function()
     hl.bind(M .. " + Period",                 hl.dsp.exec_cmd("pkill fuzzel || caelestia emoji -p"))
     hl.bind("CTRL + SHIFT + ALT + V",         hl.dsp.exec_cmd([[sleep 0.5s && ydotool type -d 1 "$(cliphist list | head -1 | cliphist decode)"]]), { locked=true })
 
+    hl.bind = bind
 end)
