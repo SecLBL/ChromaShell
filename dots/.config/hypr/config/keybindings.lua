@@ -139,7 +139,7 @@ hl.define_submap("global", "global", function()
     hl.bind("CTRL + SHIFT + ALT + Tab",      hl.dsp.group.prev(),                             { repeating=true })
     hl.bind(v.kbToggleGroup,                   hl.dsp.group.toggle())
     hl.bind(v.kbUngroup,                       hl.dsp.group.move_window())
-    hl.bind(M .. " + SHIFT + Comma",          hl.dsp.group.lock_active("toggle"))
+    hl.bind(M .. " + SHIFT + Comma",          hl.dsp.group.lock({ action="toggle" }))
 
     -- ── Window — focus (canvas: next window that way, panned to the centre) ───
     for _, d in ipairs({ "left", "right", "up", "down" }) do
